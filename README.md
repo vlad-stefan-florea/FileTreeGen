@@ -35,8 +35,8 @@
 	* Some additional data is included in the report, such as: *the directory's full path*, *creation date & time*, *system privileges* , *number of sub-directories*, *number of files*, *total size*.
 
 * **♿ Accessibility & Keyboard Navigation**
-	* Use the *TAB* and *Shift+TAB* keys to navigate between the buttons
-	* Use the *Space* and *Enter* keys to open links and expand/collapse nodes
+	* Use the `TAB` and `Shift+TAB` keys to navigate between the buttons
+	* Use the `Space` and `Enter` keys to open links and expand/collapse nodes
 	* *Screen Reader Optimization*: Dynamic ARIA attributes prevent repetitive reading and announce precise context updates.
 	* *No Icon Pollution*: Structural emojis & symbols (`📁`, `📂`, `[+]`) are hidden from screen readers, focusing speech solely on the actual node names.
 
