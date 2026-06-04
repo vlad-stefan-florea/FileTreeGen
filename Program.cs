@@ -1,5 +1,4 @@
 ﻿using System.Data;
-using System.Runtime.CompilerServices;
 using System.Security.Principal;
 using System.Text;
 
@@ -71,19 +70,22 @@ namespace FolderStructurer
                     {
                         if (allowAll || filter.Contains(file.Extension.ToLower()))
                         {
+                            string extension = string.IsNullOrEmpty(file.Extension)
+                                ? "No Extension"
+                                : file.Extension.ToLower();
                             folderNode.Children.Add(
                                 new()
                                 {
                                     Name = file.Name,
                                     IsFile = true,
-                                    Extension = file.Extension.ToLower(),
+                                    Extension = extension,
                                     PathIfFile = file.FullName,
                                 }
                             );
-                            if (FileCounter.ContainsKey(file.Extension))
-                                FileCounter[file.Extension]++;
+                            if (FileCounter.ContainsKey(extension))
+                                FileCounter[extension]++;
                             else
-                                FileCounter[file.Extension] = 1;
+                                FileCounter[extension] = 1;
                             TotalSize += file.Length;
                         }
                     }
@@ -140,6 +142,8 @@ namespace FolderStructurer
 
         public static bool IsRunningAsAdmin()
         {
+            if (!OperatingSystem.IsWindows())
+                return false;
             try
             {
                 using (WindowsIdentity identity = WindowsIdentity.GetCurrent())
@@ -200,10 +204,13 @@ namespace FolderStructurer
         }
 
         private static string? DrawFileNode(Node fileNode) =>
-            "<a class=\"file-item\" href=\""
+            "<a class='file-item' href='"
             + "file:///"
             + fileNode.PathIfFile.Replace("\\", "/")
-            + "\" target=\"_blank\">"
+            + "' target='_blank'"
+            + "aria-label='Open file: "
+            + fileNode.Name
+            + "'>"
             + GetIconHtml(fileNode.Extension)
             + fileNode.Name
             + "</a>";
@@ -211,16 +218,16 @@ namespace FolderStructurer
         private static void DrawFolderNode(Node folderNode, StringBuilder sb)
         {
             var sortedChildren = folderNode.Children.OrderBy(c => c.IsFile).ThenBy(c => c.Name);
-            sb.Append("<div class=\"folder-container\">");
+            sb.Append("<div class='folder-container'>");
             string outHtml =
-                $"<div class=\"folder-header\" onclick=\"toggle(this)\" {(folderNode.Children.Any() ? "" : "style=\"cursor: default !important\"")}>"
-                + $"<span class=\"toggle-icon {(folderNode.Children.Any() ? "hasContents" : "")}\">"
+                $"<button class='folder-header' onclick='toggle(this)' {(folderNode.Children.Any() ? "" : "style='cursor: default !important'")} data-name='{folderNode.Name}' aria-label='Expand Directory: {folderNode.Name}'>"
+                + $"<span class='toggle-icon {(folderNode.Children.Any() ? "hasContents" : "")}' aria-hidden='true'>"
                 + (folderNode.Children.Any() ? "[+] 📁" : "[#] 📁")
-                + $"</span>&nbsp;{folderNode.Name + (folderNode.Children.Any() ? "" : " (Empty)")}</div>";
+                + $"</span>&nbsp;{folderNode.Name + (folderNode.Children.Any() ? "" : " (Empty)")}</button>";
             sb.Append(outHtml);
             if (folderNode.Children.Any())
             {
-                sb.Append("<div class=\"folder-content hidden\">");
+                sb.Append("<div class='folder-content hidden'>");
                 foreach (var child in sortedChildren)
                 {
                     if (child.IsFile)
@@ -267,7 +274,7 @@ namespace FolderStructurer
                       background 0.3s,
                       color 0.3s;
                   }
-                  
+
                   .folder-header {
                     cursor: pointer;
                     padding: 2px 5px;
@@ -278,8 +285,15 @@ namespace FolderStructurer
                     transition:
                       background 0.2s,
                       font-weight 0.2s;
+                    background: none;
+                    border: none;
+                    width: 100%;
+                    font-family: inherit;
+                    font-size: inherit;
+                    font-weight: inherit;
+                    color: inherit;
                   }
-                  
+
                   .folder-header:hover {
                     background: var(--hoverHeader);
                     font-weight: bold;
@@ -290,7 +304,7 @@ namespace FolderStructurer
                     border-left: 2px solid var(--guideLines);
                     display: block;
                   }
-                  
+
                   .file-item {
                     padding-left: 20px;
                     position: relative;
@@ -305,13 +319,13 @@ namespace FolderStructurer
                       background 0.2s,
                       font-weight 0.2s;
                   }
-                  
+
                   .file-item:hover {
                     background: var(--hoverHeader);
                     color: var(--text);
                     font-weight: bold;
                   }
-                  
+
                   .file-item::before {
                     content: "";
                     position: absolute;
@@ -328,7 +342,7 @@ namespace FolderStructurer
                     flex-shrink: 0;
                   }
 
-                  button {
+                  .navbar button {
                     position: relative;
                     cursor: pointer;
                     border: 1px solid var(--text);
@@ -338,11 +352,11 @@ namespace FolderStructurer
                     background-color: var(--bkg);
                     margin-right: 5px;
                   }
-                  
-                  button:hover {
+
+                  .navbar button:hover {
                     background-color: var(--hoverHeader);
                   }
-                  
+
                   .navbar {
                     position: sticky;
                     top: 0;
@@ -356,7 +370,7 @@ namespace FolderStructurer
                     border: 2px solid var(--fileItem);
                     z-index: 2;
                   }
-                  
+
                   .bar-item {
                     margin-block: 10px;
                     align-items: center;
@@ -392,7 +406,7 @@ namespace FolderStructurer
                     flex-direction: row;
                     flex-wrap: wrap;
                   }
-                  
+
                   .other-ext {
                     margin: 5px;
                     border: 1px solid var(--fileItem);
@@ -401,6 +415,17 @@ namespace FolderStructurer
                     padding: 5px;
                     border-radius: 10px;
                   }
+
+                  footer a {
+                    color: blue;
+                  }
+                  footer a:visited {
+                    color: magenta;
+                  }
+                  footer a:hover {
+                    color: red;
+                  }
+
                   .hidden {
                     display: none;
                   }
@@ -430,13 +455,13 @@ namespace FolderStructurer
             string navbar = """
                 <div class="navbar">
                   <div class="nav-buttons">
-                    <button onclick="expandAll()">
+                    <button onclick="expandAll()" aria-label="Expand all nodes">
                       <i class="fa-solid fa-angles-down"></i> Expand All
                     </button>
-                    <button onclick="collapseAll()">
+                    <button onclick="collapseAll()" aria-label="Collapse all nodes">
                       <i class="fa-solid fa-angles-up"></i> Collapse All
                     </button>
-                    <button onclick="toggleTheme()">
+                    <button onclick="toggleTheme()" aria-label="Change Theme">
                       <i class="fa-solid fa-circle-half-stroke"></i> Theme
                     </button>
                   </div>
@@ -448,7 +473,7 @@ namespace FolderStructurer
         private static void DrawBody(
             Node rootNode,
             string rootPath,
-            string appName,
+            string appGithubLink,
             StringBuilder sb
         )
         {
@@ -481,7 +506,7 @@ namespace FolderStructurer
                         <div class='bar-track'>
                             <div class='bar-fill' style='width:{((double)FileSysUtils.FileCounter[key] / totalFiles * 100).ToString("F2")}%;'></div>
                         </div>
-                        <div class='bar-label'>{(key == "" ? "Unknown" : key)} ({FileSysUtils.FileCounter[key]})</div>
+                        <div class='bar-label'>{key} ({FileSysUtils.FileCounter[key]})</div>
                     </div>
                     ";
 
@@ -512,7 +537,7 @@ namespace FolderStructurer
                         </div>
                         "
                     );
-                    sb.Append($"Others:\n<div class='others-details'>");
+                    sb.Append($"Other file types:\n<div class='others-details'>");
                     foreach (string k in otherKeys)
                     {
                         sb.Append($"<span class='other-ext'>{k}</span>");
@@ -520,7 +545,10 @@ namespace FolderStructurer
                     sb.Append($"</div>");
                 }
             }
-            sb.Append($"<hr /><footer>Generated using {appName}</footer>");
+            Uri uri = new Uri(appGithubLink);
+            sb.Append(
+                $"<hr /><footer>Report generated using <a href='{appGithubLink}' target='_blank'>{uri.Segments[^1]}</a></footer>"
+            );
             sb.Append("</body>");
         }
 
@@ -530,20 +558,27 @@ namespace FolderStructurer
                 <script>
                   function toggle(element) {
                     const content = element.nextElementSibling;
+                    if (!content) return;
                     const icon = element.querySelector(".toggle-icon");
+                    const folderName = element.getAttribute("data-name"); 
 
                     if (content.classList.contains("hidden")) {
                       content.classList.remove("hidden");
                       icon.innerText = "[-] 📂";
+                      element.setAttribute("aria-label", `Collapse Directory: ${folderName}`);
+                      element.setAttribute("aria-expanded", "true");
                     } else {
                       content.classList.add("hidden");
                       icon.innerText = "[+] 📁";
+                      element.setAttribute("aria-label", `Expand Directory: ${folderName}`);
+                      element.setAttribute("aria-expanded", "false");
                     }
                   }
 
                   function toggleTheme() {
                     document.body.classList.toggle("dark-mode");
                   }
+
                   function expandAll() {
                     document
                       .querySelectorAll(".folder-content")
@@ -552,7 +587,7 @@ namespace FolderStructurer
                       .querySelectorAll(".toggle-icon.hasContents")
                       .forEach((el) => (el.innerText = "[-] 📂"));
                   }
-
+                  
                   function collapseAll() {
                     document
                       .querySelectorAll(".folder-content")
@@ -569,7 +604,7 @@ namespace FolderStructurer
         public static void DrawHtml(
             Node rootNode,
             string rootPath,
-            string appName,
+            string appGithubLink,
             string fileName,
             StringBuilder sb
         )
@@ -577,7 +612,7 @@ namespace FolderStructurer
             sb.Append("<!doctype html>");
             sb.Append("<html>");
             DrawHead(fileName, sb);
-            DrawBody(rootNode, rootPath, appName, sb);
+            DrawBody(rootNode, rootPath, appGithubLink, sb);
             DrawScritps(sb);
             sb.Append("</html>");
         }
@@ -591,7 +626,7 @@ namespace FolderStructurer
             {
                 // params
                 string dirPath = string.Empty,
-                    appName = "File Tree Generator";
+                    appGithubLink = @"https://github.com/vlad-stefan-florea/FileTreeGen";
 
                 Console.InputEncoding = Encoding.UTF8;
                 Console.OutputEncoding = Encoding.UTF8;
@@ -623,7 +658,7 @@ namespace FolderStructurer
 
                 StringBuilder sb = new StringBuilder();
 
-                HtmlUtils.DrawHtml(rootNode, dirPath, appName, fileName, sb);
+                HtmlUtils.DrawHtml(rootNode, dirPath, appGithubLink, fileName, sb);
 
                 string finalCode = sb.ToString();
                 string downloadsPath = Path.Combine(
