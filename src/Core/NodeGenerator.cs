@@ -1,8 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Core
+﻿namespace Core
 {
-    internal class NodeGenerator { }
+    public class NodeGenerator
+    {
+        public enum OutputFormat
+        {
+            HTML,
+            Markdown,
+            Text,
+        }
+    }
 }
