@@ -1,5 +1,6 @@
-﻿using static CLI.ColorDisplay;
-using static Core.NodeGenerator; // for 'OutputFormat'
+﻿using System.Diagnostics.Metrics;
+using static CLI.ColorDisplay;
+using static Core.Settings;
 using static Core.Utils.Text;
 
 namespace CLI
@@ -33,17 +34,39 @@ namespace CLI
             return dir;
         }
 
-        public static OutputFormat AskForFormat()
+        public static bool AskYN(string prompt)
         {
-            int choice = -1,
-                counter = 0;
+            int counter = 0;
+            string ans = string.Empty;
 
-            var options = new string[] { "HTML", "Markdown", "Text" };
-            WriteMsg(
-                "Please choose the number of the preferred output format",
-                MsgType.Choice,
-                Options: options
-            );
+            while (string.IsNullOrEmpty(ans))
+            {
+                counter++;
+                if (counter % AttemptLimit == 0)
+                    Console.Clear();
+
+                WriteMsg($"{prompt}\n[Y/N]", MsgType.Request);
+                ans = Console.ReadLine().Trim().ToLower();
+
+                if (string.IsNullOrEmpty(ans))
+                {
+                    WriteMsg($"Please answer with 'y' for YES or 'n' for NO", MsgType.Info);
+                    ans = string.Empty;
+                }
+            }
+            if (ans == "y")
+                return true;
+            else
+                return false;
+        }
+
+        public static T ChoiceMenu<T>(string prompt)
+        {
+            int counter = 0;
+            string[] options = Enum.GetNames(typeof(T));
+            T[] values = (T[])Enum.GetValues(typeof(T));
+
+            WriteMsg(prompt, MsgType.Choice, options);
 
             while (true)
             {
@@ -51,31 +74,15 @@ namespace CLI
                 if (counter % AttemptLimit == 0)
                 {
                     Console.Clear();
-                    WriteMsg(
-                        "Please choose the number of the preferred output format",
-                        MsgType.Choice,
-                        Options: options
-                    );
+                    WriteMsg(prompt, MsgType.Choice, options);
                 }
 
                 WriteMsg("Choice", MsgType.Request);
                 string? ans = Console.ReadLine();
-                if (!string.IsNullOrEmpty(ans))
-                {
-                    choice = Convert.ToInt32(ans);
-                    switch (choice)
-                    {
-                        case 0:
-                            return OutputFormat.HTML;
-                        case 1:
-                            return OutputFormat.Markdown;
-                        case 2:
-                            return OutputFormat.Text;
-                        default:
-                            break;
-                    }
-                }
-                WriteMsg("Please chose one of the options above", MsgType.Info);
+
+                if (int.TryParse(ans, out int choice))
+                    if (choice >= 0 && choice < values.Length)
+                        return values[choice];
             }
         }
     }
