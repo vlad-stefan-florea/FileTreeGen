@@ -45,15 +45,15 @@ namespace CLI
             switch (type)
             {
                 case MsgType.Error:
-                    WriteColor("❌ " + msg + "\n", ConsoleColor.Red);
+                    WriteColor("❌ [ERROR] " + msg + "\n", ConsoleColor.Red);
                     break;
 
                 case MsgType.Warning:
-                    WriteColor("⚠️ " + msg + "\n", ConsoleColor.Yellow);
+                    WriteColor("⚠️ [WARNING] " + msg + "\n", ConsoleColor.Yellow);
                     break;
 
                 case MsgType.Info:
-                    WriteColor("ℹ️ " + msg + "\n", ConsoleColor.Blue);
+                    WriteColor("ℹ️ [INFO] " + msg + "\n", ConsoleColor.Blue);
                     break;
 
                 case MsgType.Request:
@@ -61,11 +61,11 @@ namespace CLI
                     break;
 
                 case MsgType.Success:
-                    WriteColor("✅ " + msg + "\n", ConsoleColor.Green);
+                    WriteColor("✅ [SUCCESS] " + msg + "\n", ConsoleColor.Green);
                     break;
 
                 case MsgType.Choice:
-                    WriteColor("\n💬 " + msg + ": ", ConsoleColor.Cyan);
+                    WriteColor("💬 " + msg + ": ", ConsoleColor.Cyan);
 
                     if (options == null || options.Length == 0)
                     {
@@ -101,20 +101,41 @@ namespace CLI
             }
         }
 
-        public static void LoadingAnimation(Task task, int delayMs)
+        public static void DeleteCurrentLine()
         {
-            string[] frames = { ".", "..", "...", "" };
+            int line = Console.CursorTop;
+            Console.SetCursorPosition(0, line);
+            Console.WriteLine(new string(' ', Console.BufferWidth));
+            Console.SetCursorPosition(0, line);
+        }
 
+        /// <summary>
+        /// Plays a 'spinner' loadign animation while the given Task is running.
+        /// </summary>
+        /// <param name="task">The Task's running instance.</param>
+        /// <param name="message">The message to be displayed to the right of the spinner.</param>
+        /// <param name="delayMs">The delay between spinner frame updates.</param>
+        public static void LoadingAnimation(Task task, string message, int delayMs)
+        {
+            char[] frames = { '\\', '|', '/', '-' };
             int index = 0;
-
+            Console.Write("  " + message);
+            Console.SetCursorPosition(0, Console.CursorTop);
             while (!task.IsCompleted)
             {
-                Console.Write("\r" + frames[index] + "   "); // extra spaces clear old text
+                Console.Write("\r" + frames[index]);
 
                 index = (index + 1) % frames.Length;
-
-                Thread.Sleep(delayMs); // 500 ms between frames
+                Thread.Sleep(delayMs);
             }
+            DeleteCurrentLine();
+        }
+
+        public static void WaitForInput()
+        {
+            WriteMsg("Press any key to continue", MsgType.Request);
+            Console.ReadKey();
+            Console.WriteLine();
         }
     }
 }

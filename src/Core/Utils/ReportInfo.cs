@@ -5,7 +5,9 @@ namespace Core.Utils
     public class ReportInfo
     {
         public static string GenerateName(string targetPath) =>
-            Utils.Text.CleanFileName(Path.GetFileName(Utils.Text.CleanPath(targetPath)));
+            Utils
+                .Text.CleanFileName(Path.GetFileName(Utils.Text.CleanPath(targetPath)))
+                .Replace(" ", "_");
 
         private static string GetExtension(OutputFormat outputType) =>
             outputType switch
@@ -28,7 +30,7 @@ namespace Core.Utils
                 Utils.Text.CleanPath(outputDir),
                 GenerateName(targetDir)
                     + "-"
-                    + Calendar.GetSimpleDate()
+                    + Calendar.GetDateReversed()
                     + "-FileTreeGen"
                     + GetExtension(Format)
             );

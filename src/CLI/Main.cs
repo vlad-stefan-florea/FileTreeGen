@@ -9,29 +9,40 @@ namespace CLI
     {
         public static async Task Run()
         {
+            // GenFlags
+            GenFlags flags = new GenFlags();
+
             // target folder
-            string targetDir = InputHandler.AskForDir();
-            WriteMsg($"Directory chosen: '{targetDir}'", MsgType.Success);
+            flags.targetDir = InputHandler.AskForDir();
+            WriteMsg($"Directory chosen: '{flags.targetDir}'", MsgType.Success);
 
             // output format
-            OutputFormat format = InputHandler.ChoiceMenu<OutputFormat>(
-                "Please choose the number of the preferred output format"
+            WriteMsg(
+                "Choosing HTML for bigger folders is highly recommended.\nOpening other format reports for big folders will be a lot slower.",
+                MsgType.Warning
             );
-            WriteMsg($"Format chosen: '{format}'", MsgType.Success);
-            if (format == OutputFormat.HTML || format == OutputFormat.Markdown)
-                WriteMsg(
-                    "IN DEVELOPMENT: TEXT will be automatically set as the default output format",
-                    MsgType.Warning
-                );
-            format = OutputFormat.Text;
+            flags.format =
+                (
+                    InputHandler.ChoiceMenu<OutputFormat>(
+                        "Please choose the number of the preferred output format"
+                    )
+                ) ?? flags.format;
+
+            WriteMsg($"Format chosen: '{flags.format}'", MsgType.Success);
+
+            if (flags.format == OutputFormat.HTML || flags.format == OutputFormat.Markdown)
+                WriteMsg("IN DEVELOPMENT (SET TO TEXT)", MsgType.Warning);
+            flags.format = OutputFormat.Text;
 
             // DEFAULT VALUES
             string userprofile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
                 downloads = Path.Join(userprofile, "downloads"),
-                outputPath = Core.Utils.ReportInfo.GeneratePath(downloads, targetDir, format);
-            BufferSize bufferSize = BufferSize.Medium;
-            List<string> ExtWhitelist = new(),
-                ExtBlacklist = new();
+                outputPath = Core.Utils.ReportInfo.GeneratePath(
+                    downloads,
+                    flags.targetDir,
+                    flags.format
+                );
+            flags.outPath = outputPath;
 
             // other settings prompt
             bool advanced = InputHandler.AskYN("Edit advanced settings?");
@@ -40,32 +51,41 @@ namespace CLI
                 bool back = false;
                 while (!back)
                 {
-                    AdvancedOptions option = InputHandler.ChoiceMenu<AdvancedOptions>(
+                    AdvancedOptions? option = InputHandler.ChoiceMenu<AdvancedOptions>(
                         "Choose an advanced option to edit"
                     );
+                    if (option is null)
+                    {
+                        back = true;
+                        continue;
+                    }
                     switch (option)
                     {
-                        case AdvancedOptions.Back:
-                            back = true;
-                            break;
-
                         case AdvancedOptions.Output_Directory:
                             Console.Clear();
                             string outputDir = InputHandler.AskForDir();
                             WriteMsg($"Directory chosen: '{outputDir}'", MsgType.Success);
                             outputPath = Core.Utils.ReportInfo.GeneratePath(
                                 outputDir,
-                                targetDir,
-                                format
+                                flags.targetDir,
+                                flags.format
                             );
+                            flags.outPath = outputPath;
                             break;
 
                         case AdvancedOptions.Buffer_Size:
                             Console.Clear();
-                            bufferSize = InputHandler.ChoiceMenu<BufferSize>(
-                                "Please choose the buffer size"
+                            flags.bufferSize =
+                                (
+                                    InputHandler.ChoiceMenu<BufferSize>(
+                                        "Please choose the buffer size",
+                                        cancelValue: flags.bufferSize
+                                    )
+                                ) ?? flags.bufferSize;
+                            WriteMsg(
+                                $"Buffer Size was set to: '{flags.bufferSize.ToString().Replace("_", " ")}'",
+                                MsgType.Success
                             );
-                            WriteMsg($"Buffer Size chosen: '{bufferSize}'", MsgType.Success);
                             break;
 
                         case AdvancedOptions.Extensions_Whitelist:
@@ -84,8 +104,9 @@ namespace CLI
             }
 
             WriteMsg($"The report will be saved at: '{outputPath}'", MsgType.Info);
+            WaitForInput();
 
-            switch (format)
+            switch (flags.format)
             {
                 case OutputFormat.HTML:
                     WriteMsg("IN DEVELOPMENT", MsgType.Warning);
@@ -94,17 +115,27 @@ namespace CLI
                     WriteMsg("IN DEVELOPMENT", MsgType.Warning);
                     break;
                 case OutputFormat.Text:
-                    TxtWriter writer = new TxtWriter(targetDir, outputPath, bufferSize);
+                    TxtWriter writer = new TxtWriter(flags);
                     Task write = writer.WriteAsync();
 
-                    LoadingAnimation(write, 500);
-                    Console.WriteLine();
+                    LoadingAnimation(write, "Generating report", 100);
 
                     await write;
-                    WriteMsg("REPORT GENERATED", MsgType.Success);
+                    if (write.IsCompletedSuccessfully)
+                        WriteMsg("REPORT GENERATED", MsgType.Success);
+                    else
+                        WriteMsg("FAILED TO GENERATE REPORT", MsgType.Error);
                     break;
                 default:
                     break;
+            }
+            if (flags.autoOpenReport)
+                Core.Utils.FileSystem.OpenPath(flags.outPath);
+            else
+            {
+                bool ans = InputHandler.AskYN("Open report?");
+                if (ans)
+                    Core.Utils.FileSystem.OpenPath(flags.outPath);
             }
         }
     }

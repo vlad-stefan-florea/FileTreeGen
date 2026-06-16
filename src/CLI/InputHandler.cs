@@ -34,6 +34,11 @@ namespace CLI
             return dir;
         }
 
+        /// <summary>
+        /// Displays a YES/NO prompt.
+        /// </summary>
+        /// <param name="prompt">The prompt to be displayed.</param>
+        /// <returns>A bool based on the answer (true for YES; false for NO).</returns>
         public static bool AskYN(string prompt)
         {
             int counter = 0;
@@ -60,11 +65,18 @@ namespace CLI
                 return false;
         }
 
-        public static T ChoiceMenu<T>(string prompt)
+        /// <summary>
+        /// Displays a choice menu based on the given structure.
+        /// </summary>
+        /// <param name="T">The Enum containing all the available options.</typeparam>
+        /// <param name="prompt">The prompt to be displayed.</param>
+        /// <returns>Returns the chosen Enum entry.</returns>
+        public static T? ChoiceMenu<T>(string prompt, T? cancelValue = null)
+            where T : struct, Enum
         {
             int counter = 0;
             string[] options = Enum.GetNames(typeof(T));
-            T[] values = (T[])Enum.GetValues(typeof(T));
+            T[] values = Enum.GetValues<T>();
 
             WriteMsg(prompt, MsgType.Choice, options);
 
@@ -80,9 +92,12 @@ namespace CLI
                 WriteMsg("Choice", MsgType.Request);
                 string? ans = Console.ReadLine();
 
-                if (int.TryParse(ans, out int choice))
-                    if (choice >= 0 && choice < values.Length)
-                        return values[choice];
+                if (int.TryParse(ans, out int choice) && choice >= 0 && choice < values.Length)
+                {
+                    return values[choice];
+                }
+                else if (string.Equals(ans, "q", StringComparison.OrdinalIgnoreCase))
+                    return null;
             }
         }
     }

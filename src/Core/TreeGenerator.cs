@@ -1,15 +1,27 @@
-﻿namespace Core
+﻿using Core.Utils;
+
+namespace Core
 {
     public class TreeGenerator
     {
         private int _currentId = 0;
-        public int skippedFolders = 0,
-            skippedFiles = 0;
 
-        public IEnumerable<Node> GenerateTree(string rootPath)
+        private GenFlags _flags = new();
+        public Metadata metadata = new();
+
+        public TreeGenerator(GenFlags genFlags)
+        {
+            _flags = genFlags;
+            metadata.dirPath = _flags.targetDir;
+            DirectoryInfo info = new(metadata.dirPath);
+            metadata.dirName = info.Name;
+            metadata.genDateTime = Calendar.GetDate().Replace("-", "/") + " " + Calendar.GetTime();
+        }
+
+        public IEnumerable<Node> GenerateTree()
         {
             _currentId = 0;
-            return TraverseDirectory(new DirectoryInfo(rootPath), null, 0);
+            return TraverseDirectory(new DirectoryInfo(_flags.targetDir), null, 0);
         }
 
         private IEnumerable<Node> TraverseDirectory(
@@ -21,47 +33,85 @@
             int newId = _currentId++;
 
             // send current folder
-            yield return new Node
+            if (!_flags.filesOnly)
             {
-                Id = newId,
-                ParentId = parentId,
-                Name = directory.Name,
-                Type = NodeType.Folder,
-                Level = level,
-            };
+                yield return new Node
+                {
+                    Id = newId,
+                    ParentId = parentId,
+                    Name = directory.Name,
+                    Type = NodeType.Folder,
+                    Level = level,
+                };
+            }
 
             // scan subfolders
-            DirectoryInfo[] subDirs = [];
+            IEnumerable<DirectoryInfo>? subDirs = null;
             try
             {
-                subDirs = directory.GetDirectories();
+                subDirs = directory.EnumerateDirectories();
             }
             catch
             {
                 // Ignore
-                skippedFolders++;
+                metadata.skippedFolders++;
             }
-
-            foreach (var subDir in subDirs)
-            {
-                foreach (var childNode in TraverseDirectory(subDir, newId, level + 1))
+            if (subDirs != null)
+                foreach (var subDir in subDirs)
                 {
-                    yield return childNode;
+                    if (FileSystem.IsReparsePoint(subDir.FullName))
+                    {
+                        metadata.files++;
+                        yield return new Node
+                        {
+                            Id = _currentId++,
+                            ParentId = newId,
+                            Name = (_flags.noIcons ? null : "[→] ") + subDir.Name + " (link)",
+                            Type = NodeType.File,
+                            Level = level + 1,
+                            Path = subDir.FullName,
+                        };
+                    }
+                    else
+                    {
+                        metadata.folders++;
+                        foreach (var childNode in TraverseDirectory(subDir, newId, level + 1))
+                        {
+                            yield return childNode;
+                        }
+                    }
                 }
-            }
 
             // send files
-            foreach (var filePath in Directory.EnumerateFiles(directory.FullName))
+            if (!_flags.dirsOnly)
             {
-                yield return new Node
+                IEnumerable<string>? filePaths = null;
+                try
                 {
-                    Id = _currentId++,
-                    ParentId = newId,
-                    Name = Path.GetFileName(filePath),
-                    Type = NodeType.File,
-                    Level = level + 1,
-                    Path = filePath,
-                };
+                    filePaths = Directory.EnumerateFiles(directory.FullName);
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    metadata.skippedFolders++;
+                }
+                if (filePaths != null)
+                    foreach (var filePath in filePaths)
+                    {
+                        metadata.files++;
+                        FileInfo info = new(filePath);
+                        if (info.Exists)
+                            metadata.totalSizeBytes += info.Length;
+
+                        yield return new Node
+                        {
+                            Id = _currentId++,
+                            ParentId = newId,
+                            Name = Path.GetFileName(filePath),
+                            Type = NodeType.File,
+                            Level = _flags.filesOnly ? level : level + 1,
+                            Path = filePath,
+                        };
+                    }
             }
         }
     }

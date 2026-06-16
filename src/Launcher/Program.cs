@@ -5,7 +5,7 @@ namespace Launcher
 {
     internal class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             Console.OutputEncoding = System.Text.Encoding.UTF8;
 
@@ -22,7 +22,7 @@ namespace Launcher
             {
                 if (errMsg != null)
                     WriteMsg(errMsg, MsgType.Error);
-                CLI.Main.Run();
+                await CLI.Main.Run();
             }
             else
                 Console.WriteLine("Silent can be run");

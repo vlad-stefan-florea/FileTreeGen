@@ -2,12 +2,26 @@
 {
     public class Text
     {
-        public static string CleanPath(string? path) =>
-            path == null
-                ? string.Empty
-                : path.Trim()
-                    .Replace("\"", "")
-                    .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        public static string CleanPath(string? path)
+        {
+            if (path == null)
+                return string.Empty;
+            string cleaned = path.Trim().Replace("\"", "");
+            if (cleaned.Length == 2 && cleaned.EndsWith(":")) // disk root format: "C:"
+            {
+                cleaned += Path.DirectorySeparatorChar;
+            }
+            if (cleaned.Length > 3)
+            {
+                // ensures that '\' is removed from the end if not disk root format
+                // "C:\" - 3 chars - is not affected
+                cleaned = cleaned.TrimEnd(
+                    Path.DirectorySeparatorChar,
+                    Path.AltDirectorySeparatorChar
+                );
+            }
+            return cleaned;
+        }
 
         public static string CleanFileName(string fileName)
         {
