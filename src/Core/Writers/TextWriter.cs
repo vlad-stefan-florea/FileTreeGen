@@ -2,7 +2,7 @@
 {
     public sealed class TextWriter : BaseWriter
     {
-        GenFlags _flags = new GenFlags();
+        readonly GenFlags _flags = new GenFlags();
 
         public TextWriter(GenFlags flags)
             : base(flags)
@@ -10,7 +10,7 @@
             _flags = flags;
         }
 
-        protected override string FormatNode(Node node)
+        protected override async Task WriteNodeAsync(StreamWriter writer, Node node)
         {
             string? prefix = null,
                 symbol = null;
@@ -26,14 +26,30 @@
 
                 symbol = _flags.noIcons ? null : (node.Type == NodeType.Folder ? "[DIR]" : null);
             }
-            return $"{prefix}{symbol} {node.Name}\r\n";
+            await writer.WriteAsync($"{prefix}{symbol} {node.Name}\r\n");
         }
 
-        protected override string GenerateMetadataPanel(Metadata data)
+        protected override async Task WriteMetadataAsync(StreamWriter writer, Metadata metadata) =>
+            await writer.WriteAsync(MetadataPanel(metadata));
+
+        protected override async Task WriteStatisticsAsync(StreamWriter writer, Statistics stats) =>
+            await writer.WriteAsync(StatsPanel(stats));
+
+        protected override async Task WriteHeaderAsync(StreamWriter writer, Metadata metadata) =>
+            await writer.WriteAsync(Header(metadata));
+
+        protected override async Task WriteFooterAsync(StreamWriter writer) =>
+            await writer.WriteAsync(Footer());
+
+        private string Footer() =>
+            "\n" + new string('-', 50) + $"\nGenerated using {AppInfo.AppName} ()";
+
+        private string Header(Metadata data) =>
+            data.dirName + " folder structure report\n" + new string('-', 50);
+
+        private string MetadataPanel(Metadata data)
         {
             string outString = string.Empty;
-            outString += data.dirName + " FileTreeGen report\n";
-            outString += new string('-', 50);
             outString += "\nREPORT METADATA\n";
             outString += new string('-', 10);
             outString += "\nDIRECTORY NAME: " + data.dirName;
@@ -44,7 +60,7 @@
             return outString;
         }
 
-        protected override string GenerateStatsPanel(Statistics data)
+        private string StatsPanel(Statistics data)
         {
             string outString = string.Empty;
             outString += "STATISTICS\n";

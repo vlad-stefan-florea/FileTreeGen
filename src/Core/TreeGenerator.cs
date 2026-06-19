@@ -1,4 +1,5 @@
 ﻿using Core.Utils;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Core
 {
@@ -22,7 +23,18 @@ namespace Core
         public IEnumerable<Node> GenerateTree()
         {
             _currentId = 0;
-            return TraverseDirectory(new DirectoryInfo(_flags.targetDir), null, 0);
+            try
+            {
+                // test if the root folder is accessible in the first place
+                var test = Directory.EnumerateDirectories(_flags.targetDir);
+                return TraverseDirectory(new DirectoryInfo(_flags.targetDir), null, 0);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                throw new CoreException(ErrorCode.Codes.RootAccessDenied, ex.Message);
+                // if not, throw error and don't generate any report
+                // why would someone need an 'empty' report?
+            }
         }
 
         private IEnumerable<Node> TraverseDirectory(
@@ -53,17 +65,19 @@ namespace Core
                 {
                     subDirs = directory.EnumerateDirectories();
                 }
-                catch
+                catch (UnauthorizedAccessException)
                 {
                     // Ignore
-                    stats.skippedFolders++;
+                    if (!_flags.noStatistics)
+                        stats.skippedFolders++;
                 }
                 if (subDirs != null)
                     foreach (var subDir in subDirs)
                     {
                         if (FileSystem.IsReparsePoint(subDir.FullName))
                         {
-                            stats.files++;
+                            if (!_flags.noStatistics)
+                                stats.files++;
                             yield return new Node
                             {
                                 Id = _currentId++,
@@ -76,7 +90,8 @@ namespace Core
                         }
                         else
                         {
-                            stats.folders++;
+                            if (!_flags.noStatistics)
+                                stats.folders++;
                             foreach (var childNode in TraverseDirectory(subDir, newId, level + 1))
                             {
                                 yield return childNode;
@@ -94,15 +109,19 @@ namespace Core
                     }
                     catch (UnauthorizedAccessException)
                     {
-                        stats.skippedFolders++;
+                        if (!_flags.noStatistics)
+                            stats.skippedFolders++;
                     }
                     if (filePaths != null)
                         foreach (var filePath in filePaths)
                         {
-                            stats.files++;
-                            FileInfo info = new(filePath);
-                            if (info.Exists)
-                                stats.totalSizeBytes += info.Length;
+                            if (!_flags.noStatistics)
+                            {
+                                stats.files++;
+                                FileInfo info = new(filePath);
+                                if (info.Exists)
+                                    stats.totalSizeBytes += info.Length;
+                            }
 
                             yield return new Node
                             {

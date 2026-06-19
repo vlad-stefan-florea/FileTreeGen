@@ -1,4 +1,5 @@
-﻿using static CLI.ColorDisplay;
+﻿using Core;
+using static CLI.ColorDisplay;
 using static Core.Utils.Text;
 
 namespace Launcher
@@ -12,20 +13,45 @@ namespace Launcher
             bool CliNeeded = true;
             string? errMsg = null;
 
-            if (args.Length > 0)
-                if (Directory.Exists(CleanPath(args[0])))
-                    CliNeeded = false;
-                else
-                    errMsg = $"The specified directory does not exist: {args[0]}";
-
-            if (CliNeeded)
+            if (args.Length == 0)
             {
                 if (errMsg != null)
                     WriteMsg(errMsg, MsgType.Error);
-                await CLI.Main.Run();
+                CoreException? _ex = null;
+                try
+                {
+                    await CLI.Main.Run();
+                }
+                catch (CoreException ex)
+                {
+                    _ex = ex;
+                }
+                catch (Exception newEx)
+                {
+                    _ex = ErrorCode.TranslateOSException(newEx);
+                }
+                finally
+                {
+                    if (_ex != null)
+                    {
+                        WriteMsg(
+                            $"[{(int)_ex.Code}]: {ErrorCode.GetErrorMessage(_ex.Code)}",
+                            MsgType.Error
+                        );
+                        WriteMsg($"[MESSAGE]: {_ex.Message}", MsgType.Info);
+                    }
+                    else
+                    {
+                        _ex = new(ErrorCode.Codes.Success, "REPORT GENERATED SUCCESSFULY");
+                    }
+                    WaitForInput();
+                    Environment.Exit((int)_ex.Code);
+                }
             }
             else
-                Console.WriteLine("Silent can be run");
+            {
+                WriteMsg("'SILENT' IS IN DEVELOPMENT", MsgType.Warning);
+            }
         }
     }
 }

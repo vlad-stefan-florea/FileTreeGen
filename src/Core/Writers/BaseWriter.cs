@@ -12,12 +12,16 @@ namespace Core.Writers
             _flags = genFlags;
         }
 
-        protected abstract string FormatNode(Node node);
-        protected abstract string GenerateMetadataPanel(Metadata data);
-        protected abstract string GenerateStatsPanel(Statistics data);
+        protected abstract Task WriteHeaderAsync(StreamWriter writer, Metadata metadata);
+        protected abstract Task WriteMetadataAsync(StreamWriter writer, Metadata metadata);
+        protected abstract Task WriteNodeAsync(StreamWriter writer, Node node);
+        protected abstract Task WriteStatisticsAsync(StreamWriter writer, Statistics stats);
+        protected abstract Task WriteFooterAsync(StreamWriter writer);
 
         public async Task WriteAsync()
         {
+            var generator = new TreeGenerator(_flags);
+
             string finalPath = _flags.outPath;
             string tempPath = _flags.noStatistics ? finalPath : Path.GetTempFileName();
             // ^ if no statistics should be generated:
@@ -32,101 +36,139 @@ namespace Core.Writers
             Stopwatch sw = new();
             if (!_flags.noStatistics)
                 sw.Start(); // it will start/stop only if 'noStatistics' is set to false (when generating them)
-
-            using (
-                var fileStream = new FileStream(
-                    tempPath,
-                    FileMode.Create,
-                    FileAccess.Write,
-                    FileShare.None,
-                    bufferSize: (int)_flags.bufferSize,
-                    useAsync: true
-                )
-            )
+            try
             {
                 using (
-                    var tempWriter = new StreamWriter(
-                        fileStream,
-                        Encoding.UTF8,
-                        (int)_flags.bufferSize,
-                        leaveOpen: false
-                    )
-                )
-                {
-                    if (_flags.noStatistics)
-                        await tempWriter.WriteAsync(GenerateMetadataPanel(gen.metadata));
-                    // write basic info only when no stats are generated
-                    // -> else they should be added BEFORE the stats in the second phase
-
-                    foreach (var node in nodes)
-                    {
-                        await tempWriter.WriteAsync(FormatNode(node));
-                    }
-                    await tempWriter.FlushAsync();
-                }
-            }
-
-            // write the statistics (OPTIONAL)
-            if (!_flags.noStatistics)
-            {
-                sw.Stop();
-                gen.stats.genTimespan = sw.Elapsed.ToString(@"hh\:mm\:ss\.fff");
-                using (
-                    var finalStream = new FileStream(
-                        finalPath,
+                    var fileStream = new FileStream(
+                        tempPath,
                         FileMode.Create,
                         FileAccess.Write,
                         FileShare.None,
-                        (int)_flags.bufferSize,
+                        bufferSize: (int)_flags.bufferSize,
                         useAsync: true
                     )
                 )
                 {
-                    // write metadata & stats
                     using (
-                        var finalWriter = new StreamWriter(
-                            finalStream,
+                        var tempWriter = new StreamWriter(
+                            fileStream,
                             Encoding.UTF8,
                             (int)_flags.bufferSize,
                             leaveOpen: false
                         )
                     )
                     {
-                        string metadataPanel = GenerateMetadataPanel(gen.metadata);
-                        string statsPanel = GenerateStatsPanel(gen.stats);
-                        await finalWriter.WriteAsync(metadataPanel + statsPanel);
-                        await finalWriter.FlushAsync();
-                    }
+                        if (_flags.noStatistics)
+                        {
+                            await WriteHeaderAsync(tempWriter, gen.metadata);
+                            await WriteMetadataAsync(tempWriter, gen.metadata);
+                        }
+                        // write basic info only when no stats are generated
+                        // -> else they should be added BEFORE the stats in the second phase
 
-                    // copy tree from temp file
-                    if (File.Exists(tempPath))
-                    {
-                        using (
-                            var fsAppend = new FileStream(
-                                finalPath,
-                                FileMode.Append,
-                                FileAccess.Write,
-                                FileShare.None,
-                                (int)_flags.bufferSize,
-                                useAsync: true
-                            )
+                        foreach (var node in nodes)
+                        {
+                            await WriteNodeAsync(tempWriter, node);
+                        }
+                        await tempWriter.FlushAsync();
+                    }
+                }
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                throw new CoreException(ErrorCode.Codes.CannotWriteOutput, ex.Message);
+            }
+            catch (IOException ex)
+            {
+                throw new CoreException(ErrorCode.Codes.CannotWriteOutput, ex.Message);
+            }
+
+            // write the statistics (OPTIONAL)
+            if (!_flags.noStatistics)
+            {
+                try
+                {
+                    sw.Stop();
+                    gen.stats.genTimespan = sw.Elapsed.ToString(@"hh\:mm\:ss\.fff");
+                    using (
+                        var finalStream = new FileStream(
+                            finalPath,
+                            FileMode.Create,
+                            FileAccess.Write,
+                            FileShare.None,
+                            (int)_flags.bufferSize,
+                            useAsync: true
                         )
+                    )
+                    {
+                        // write metadata & stats
                         using (
-                            var fsTemp = new FileStream(
-                                tempPath,
-                                FileMode.Open,
-                                FileAccess.Read,
-                                FileShare.None,
+                            var finalWriter = new StreamWriter(
+                                finalStream,
+                                Encoding.UTF8,
                                 (int)_flags.bufferSize,
-                                useAsync: true
+                                leaveOpen: false
                             )
                         )
                         {
-                            await fsTemp.CopyToAsync(fsAppend);
+                            await WriteHeaderAsync(finalWriter, gen.metadata);
+                            await WriteMetadataAsync(finalWriter, gen.metadata);
+                            await WriteStatisticsAsync(finalWriter, gen.stats);
+                            await finalWriter.FlushAsync();
                         }
 
-                        File.Delete(tempPath);
+                        // copy tree from temp file
+                        if (File.Exists(tempPath))
+                        {
+                            using (
+                                var fsAppend = new FileStream(
+                                    finalPath,
+                                    FileMode.Append,
+                                    FileAccess.Write,
+                                    FileShare.None,
+                                    (int)_flags.bufferSize,
+                                    useAsync: true
+                                )
+                            )
+                            using (
+                                var fsTemp = new FileStream(
+                                    tempPath,
+                                    FileMode.Open,
+                                    FileAccess.Read,
+                                    FileShare.None,
+                                    (int)_flags.bufferSize,
+                                    useAsync: true
+                                )
+                            )
+                            {
+                                await fsTemp.CopyToAsync(fsAppend);
+                            }
+
+                            File.Delete(tempPath);
+                        }
+
+                        // write footer
+                        using (
+                            var finalWriter = new StreamWriter(
+                                finalStream,
+                                Encoding.UTF8,
+                                (int)_flags.bufferSize,
+                                leaveOpen: false
+                            )
+                        )
+                        {
+                            await WriteFooterAsync(finalWriter);
+                            await finalWriter.FlushAsync();
+                        }
                     }
+                }
+                catch (UnauthorizedAccessException ex)
+                {
+                    throw new CoreException(ErrorCode.Codes.CannotWriteOutput, ex.Message);
+                }
+                catch (IOException ex)
+                {
+                    throw new CoreException(ErrorCode.Codes.CannotWriteOutput, ex.Message);
                 }
             }
         }

@@ -31,7 +31,7 @@ namespace Core.Utils
                 GenerateName(targetDir)
                     + "-"
                     + Calendar.GetDateReversed()
-                    + "-FileTreeGen"
+                    + $"-{AppInfo.AppName}"
                     + GetExtension(Format)
             );
     }

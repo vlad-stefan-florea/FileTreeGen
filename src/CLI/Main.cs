@@ -11,8 +11,7 @@ namespace CLI
         {
             // GenFlags
             GenFlags flags = new GenFlags();
-            flags.noStatistics = true;
-            flags.maxLevel = 2;
+            flags.noStatistics = false;
 
             // target folder
             flags.targetDir = InputHandler.AskForDir();
@@ -52,59 +51,7 @@ namespace CLI
             bool advanced = InputHandler.AskYN("Edit advanced settings?");
             if (advanced)
             {
-                bool back = false;
-                while (!back)
-                {
-                    AdvancedOptions? option = InputHandler.ChoiceMenu<AdvancedOptions>(
-                        "Choose an advanced option to edit"
-                    );
-                    if (option is null)
-                    {
-                        back = true;
-                        continue;
-                    }
-                    switch (option)
-                    {
-                        case AdvancedOptions.Output_Directory:
-                            Console.Clear();
-                            string outputDir = InputHandler.AskForDir();
-                            WriteMsg($"Directory chosen: '{outputDir}'", MsgType.Success);
-                            outputPath = Core.Utils.ReportInfo.GeneratePath(
-                                outputDir,
-                                flags.targetDir,
-                                flags.format
-                            );
-                            flags.outPath = outputPath;
-                            break;
-
-                        case AdvancedOptions.Buffer_Size:
-                            Console.Clear();
-                            flags.bufferSize =
-                                (
-                                    InputHandler.ChoiceMenu<BufferSize>(
-                                        "Please choose the buffer size",
-                                        cancelValue: flags.bufferSize
-                                    )
-                                ) ?? flags.bufferSize;
-                            WriteMsg(
-                                $"Buffer Size was set to: '{flags.bufferSize.ToString().Replace("_", " ")}'",
-                                MsgType.Success
-                            );
-                            break;
-
-                        case AdvancedOptions.Extensions_Whitelist:
-                            Console.Clear();
-                            break;
-
-                        case AdvancedOptions.Extensions_Blacklist:
-                            Console.Clear();
-                            break;
-
-                        default:
-                            back = true;
-                            break;
-                    }
-                }
+                flags = AdvancedMenu.Edit(flags);
             }
 
             WriteMsg($"The report will be saved at: '{outputPath}'", MsgType.Info);
@@ -122,10 +69,7 @@ namespace CLI
                     LoadingAnimation(mdWrite, "Generating report", 100);
 
                     await mdWrite;
-                    if (mdWrite.IsCompletedSuccessfully)
-                        WriteMsg("REPORT GENERATED", MsgType.Success);
-                    else
-                        WriteMsg("FAILED TO GENERATE REPORT", MsgType.Error);
+                    if (mdWrite.IsCompletedSuccessfully) { }
                     break;
 
                 case OutputFormat.Text:
@@ -134,10 +78,7 @@ namespace CLI
                     LoadingAnimation(txtWrite, "Generating report", 100);
 
                     await txtWrite;
-                    if (txtWrite.IsCompletedSuccessfully)
-                        WriteMsg("REPORT GENERATED", MsgType.Success);
-                    else
-                        WriteMsg("FAILED TO GENERATE REPORT", MsgType.Error);
+                    if (txtWrite.IsCompletedSuccessfully) { }
                     break;
 
                 default:

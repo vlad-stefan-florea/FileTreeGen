@@ -1,4 +1,7 @@
 ﻿namespace Core.Writers
 {
-    public class HtmlWriter { }
+    public sealed class HtmlWriter
+    {
+        readonly GenFlags _flags = new GenFlags();
+    }
 }

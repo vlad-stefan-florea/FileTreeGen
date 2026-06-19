@@ -25,6 +25,14 @@
             Buffer_Size,
             Extensions_Whitelist,
             Extensions_Blacklist,
+            Max_Search_Depth,
+            Ignore_Empty_Directories,
+            Directories_Only,
+            Files_Only,
+            No_Statistics,
+            No_Report_Formatting,
+            No_Icons,
+            Auto_Open_Report,
         }
 
         public enum Privileges
