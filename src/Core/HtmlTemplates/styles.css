@@ -1,0 +1,181 @@
+* {
+    box-sizing: border-box;
+}
+
+:root {
+    --bkg: #f7f7f7;
+    --text: #000000;
+    --guideLines: #787878;
+    --hoverHeader: #dcdcdc;
+    --fileItem: #444;
+    --accent: #3498db;
+}
+
+body.dark-mode {
+    --bkg: #1f1f1f;
+    --text: #f9f9f9;
+    --guideLines: #a7a7a7;
+    --hoverHeader: #3b3b3b;
+    --fileItem: #d3d3d3;
+}
+
+body {
+    max-width: 100%;
+    font-family: "Segoe UI", monospace;
+    background-color: var(--bkg);
+    color: var(--text);
+    transition: background 0.3s, color 0.3s;
+}
+
+.folder-header {
+    cursor: pointer;
+    padding: 2px 5px;
+    display: flex;
+    align-items: center;
+    user-select: none;
+    position: relative;
+    transition: background 0.2s, font-weight 0.2s;
+    background: none;
+    border: none;
+    width: 100%;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    color: inherit;
+}
+
+    .folder-header:hover {
+        background: var(--hoverHeader);
+        font-weight: bold;
+    }
+
+.folder-content {
+    margin-left: 30px;
+    border-left: 2px solid var(--guideLines);
+    display: block;
+}
+
+.file-item {
+    padding-left: 20px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding-block: 2px;
+    gap: 4px;
+    color: var(--fileItem);
+    text-decoration: none;
+    width: 100%;
+    transition: background 0.2s, font-weight 0.2s;
+}
+
+    .file-item:hover {
+        background: var(--hoverHeader);
+        color: var(--text);
+        font-weight: bold;
+    }
+
+    .file-item::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 50%;
+        width: 15px;
+        height: 2px;
+        background: var(--guideLines);
+    }
+
+    .file-item i {
+        width: 20px;
+        text-align: center;
+        flex-shrink: 0;
+    }
+
+.navbar button {
+    position: relative;
+    cursor: pointer;
+    border: 1px solid var(--text);
+    padding: 5px 10px;
+    transition: all 0.3s;
+    color: var(--text);
+    background-color: var(--bkg);
+    margin-right: 5px;
+}
+
+    .navbar button:hover {
+        background-color: var(--hoverHeader);
+    }
+
+.navbar {
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px;
+    user-select: none;
+    background-color: var(--bkg);
+    border: 2px solid var(--fileItem);
+    z-index: 2;
+}
+
+.bar-item {
+    margin-block: 10px;
+    align-items: center;
+    position: relative;
+    display: flex;
+    flex-direction: row;
+}
+
+.bar-label {
+    margin-left: 10px;
+    line-height: 100%;
+}
+
+.bar-track {
+    width: 30%;
+    height: 16px;
+    border: 2px solid var(--guideLines);
+}
+
+.bar-fill {
+    height: 100%;
+    background-color: var(--accent);
+    overflow: hidden;
+}
+
+p {
+    margin-block: 0;
+}
+
+.others-details {
+    overflow: visible;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.other-ext {
+    margin: 5px;
+    border: 1px solid var(--fileItem);
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+    border-radius: 10px;
+}
+
+footer a {
+    color: blue;
+}
+
+    footer a:visited {
+        color: magenta;
+    }
+
+    footer a:hover {
+        color: red;
+    }
+
+.hidden {
+    display: none;
+}

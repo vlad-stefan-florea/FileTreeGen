@@ -11,6 +11,8 @@ namespace CLI
         {
             // GenFlags
             GenFlags flags = new GenFlags();
+            flags.noStatistics = true;
+            flags.maxLevel = 2;
 
             // target folder
             flags.targetDir = InputHandler.AskForDir();
@@ -30,9 +32,11 @@ namespace CLI
 
             WriteMsg($"Format chosen: '{flags.format}'", MsgType.Success);
 
-            if (flags.format == OutputFormat.HTML || flags.format == OutputFormat.Markdown)
+            if (flags.format == OutputFormat.HTML)
+            {
                 WriteMsg("IN DEVELOPMENT (SET TO TEXT)", MsgType.Warning);
-            flags.format = OutputFormat.Text;
+                flags.format = OutputFormat.Text;
+            }
 
             // DEFAULT VALUES
             string userprofile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
@@ -111,21 +115,31 @@ namespace CLI
                 case OutputFormat.HTML:
                     WriteMsg("IN DEVELOPMENT", MsgType.Warning);
                     break;
+
                 case OutputFormat.Markdown:
-                    WriteMsg("IN DEVELOPMENT", MsgType.Warning);
-                    break;
-                case OutputFormat.Text:
-                    TxtWriter writer = new TxtWriter(flags);
-                    Task write = writer.WriteAsync();
+                    MarkdownWriter mdWriter = new MarkdownWriter(flags);
+                    Task mdWrite = mdWriter.WriteAsync();
+                    LoadingAnimation(mdWrite, "Generating report", 100);
 
-                    LoadingAnimation(write, "Generating report", 100);
-
-                    await write;
-                    if (write.IsCompletedSuccessfully)
+                    await mdWrite;
+                    if (mdWrite.IsCompletedSuccessfully)
                         WriteMsg("REPORT GENERATED", MsgType.Success);
                     else
                         WriteMsg("FAILED TO GENERATE REPORT", MsgType.Error);
                     break;
+
+                case OutputFormat.Text:
+                    Core.Writers.TextWriter txtWriter = new Core.Writers.TextWriter(flags);
+                    Task txtWrite = txtWriter.WriteAsync();
+                    LoadingAnimation(txtWrite, "Generating report", 100);
+
+                    await txtWrite;
+                    if (txtWrite.IsCompletedSuccessfully)
+                        WriteMsg("REPORT GENERATED", MsgType.Success);
+                    else
+                        WriteMsg("FAILED TO GENERATE REPORT", MsgType.Error);
+                    break;
+
                 default:
                     break;
             }
