@@ -11,7 +11,6 @@ namespace CLI
         {
             // GenFlags
             GenFlags flags = new GenFlags();
-            flags.noStatistics = false;
 
             // target folder
             flags.targetDir = InputHandler.AskForDir();
@@ -30,12 +29,6 @@ namespace CLI
                 ) ?? flags.format;
 
             WriteMsg($"Format chosen: '{flags.format}'", MsgType.Success);
-
-            if (flags.format == OutputFormat.HTML)
-            {
-                WriteMsg("IN DEVELOPMENT (SET TO TEXT)", MsgType.Warning);
-                flags.format = OutputFormat.Text;
-            }
 
             // DEFAULT VALUES
             string userprofile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
@@ -60,7 +53,13 @@ namespace CLI
             switch (flags.format)
             {
                 case OutputFormat.HTML:
-                    WriteMsg("IN DEVELOPMENT", MsgType.Warning);
+                    HtmlWriter hmtlWriter = new HtmlWriter(flags);
+                    Task hmtlWrite = hmtlWriter.WriteAsync();
+                    LoadingAnimation(hmtlWrite, "Generating report", 100);
+
+                    await hmtlWrite;
+                    if (hmtlWrite.IsCompletedSuccessfully)
+                        ShowSuccess();
                     break;
 
                 case OutputFormat.Markdown:
@@ -69,7 +68,8 @@ namespace CLI
                     LoadingAnimation(mdWrite, "Generating report", 100);
 
                     await mdWrite;
-                    if (mdWrite.IsCompletedSuccessfully) { }
+                    if (mdWrite.IsCompletedSuccessfully)
+                        ShowSuccess();
                     break;
 
                 case OutputFormat.Text:
@@ -78,7 +78,8 @@ namespace CLI
                     LoadingAnimation(txtWrite, "Generating report", 100);
 
                     await txtWrite;
-                    if (txtWrite.IsCompletedSuccessfully) { }
+                    if (txtWrite.IsCompletedSuccessfully)
+                        ShowSuccess();
                     break;
 
                 default:
@@ -93,5 +94,8 @@ namespace CLI
                     Core.Utils.FileSystem.OpenPath(flags.outPath);
             }
         }
+
+        private static void ShowSuccess() =>
+            WriteMsg("REPORT GENERATED SUCCESSFULY", MsgType.Success);
     }
 }

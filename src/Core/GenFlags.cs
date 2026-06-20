@@ -16,5 +16,6 @@
         public bool noFormatting { get; set; } = false;
         public bool noIcons { get; set; } = false;
         public bool autoOpenReport { get; set; } = false;
+        public bool treeOnly { get; set; } = false;
     }
 }

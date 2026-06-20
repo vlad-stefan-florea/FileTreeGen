@@ -23,7 +23,8 @@ namespace Core.Writers
             var generator = new TreeGenerator(_flags);
 
             string finalPath = _flags.outPath;
-            string tempPath = _flags.noStatistics ? finalPath : Path.GetTempFileName();
+            string tempPath =
+                (_flags.noStatistics || _flags.treeOnly) ? finalPath : Path.GetTempFileName();
             // ^ if no statistics should be generated:
             // - change the temp path into the final one here (not in the file stream):
             // - write directly into the final file
@@ -52,13 +53,13 @@ namespace Core.Writers
                     using (
                         var tempWriter = new StreamWriter(
                             fileStream,
-                            Encoding.UTF8,
+                            new UTF8Encoding(false),
                             (int)_flags.bufferSize,
                             leaveOpen: false
                         )
                     )
                     {
-                        if (_flags.noStatistics)
+                        if (_flags.noStatistics && !_flags.treeOnly)
                         {
                             await WriteHeaderAsync(tempWriter, gen.metadata);
                             await WriteMetadataAsync(tempWriter, gen.metadata);
@@ -70,6 +71,8 @@ namespace Core.Writers
                         {
                             await WriteNodeAsync(tempWriter, node);
                         }
+                        if (!_flags.treeOnly)
+                            await WriteFooterAsync(tempWriter);
                         await tempWriter.FlushAsync();
                     }
                 }
@@ -84,7 +87,7 @@ namespace Core.Writers
             }
 
             // write the statistics (OPTIONAL)
-            if (!_flags.noStatistics)
+            if (!_flags.noStatistics && !_flags.treeOnly)
             {
                 try
                 {
@@ -105,7 +108,7 @@ namespace Core.Writers
                         using (
                             var finalWriter = new StreamWriter(
                                 finalStream,
-                                Encoding.UTF8,
+                                new UTF8Encoding(false),
                                 (int)_flags.bufferSize,
                                 leaveOpen: false
                             )
@@ -113,11 +116,12 @@ namespace Core.Writers
                         {
                             await WriteHeaderAsync(finalWriter, gen.metadata);
                             await WriteMetadataAsync(finalWriter, gen.metadata);
-                            await WriteStatisticsAsync(finalWriter, gen.stats);
+                            if (!_flags.noStatistics)
+                                await WriteStatisticsAsync(finalWriter, gen.stats);
                             await finalWriter.FlushAsync();
                         }
 
-                        // copy tree from temp file
+                        // copy tree (& footer) from temp file
                         if (File.Exists(tempPath))
                         {
                             using (
@@ -145,20 +149,6 @@ namespace Core.Writers
                             }
 
                             File.Delete(tempPath);
-                        }
-
-                        // write footer
-                        using (
-                            var finalWriter = new StreamWriter(
-                                finalStream,
-                                Encoding.UTF8,
-                                (int)_flags.bufferSize,
-                                leaveOpen: false
-                            )
-                        )
-                        {
-                            await WriteFooterAsync(finalWriter);
-                            await finalWriter.FlushAsync();
                         }
                     }
                 }

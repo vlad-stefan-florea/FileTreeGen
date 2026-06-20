@@ -17,7 +17,7 @@
         {
             double size = sizeBytes;
             int scale = 0;
-            while (size >= 1024 && scale < Enum.GetValues(typeof(Settings.ByteScales)).Length - 1)
+            while (size >= 1024 && scale < Enum.GetValues<Settings.ByteScales>().Length - 1)
             {
                 size /= 1024;
                 scale++;

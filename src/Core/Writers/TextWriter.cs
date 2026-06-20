@@ -12,19 +12,25 @@
 
         protected override async Task WriteNodeAsync(StreamWriter writer, Node node)
         {
-            string? prefix = null,
-                symbol = null;
+            string? prefix = string.Empty,
+                symbol = string.Empty;
             if (!_flags.noFormatting)
             {
                 if (node.Level > 0)
                 {
                     for (int c = 0; c < node.Level - 1; c++)
                         prefix += "│ ";
-
                     prefix += "├─";
                 }
-
-                symbol = _flags.noIcons ? null : (node.Type == NodeType.Folder ? "[DIR]" : null);
+                if (!_flags.noIcons)
+                {
+                    symbol = node.Type switch
+                    {
+                        NodeType.Folder => "[DIR]",
+                        NodeType.File => string.Empty,
+                        _ => string.Empty,
+                    };
+                }
             }
             await writer.WriteAsync($"{prefix}{symbol} {node.Name}\r\n");
         }
@@ -42,36 +48,32 @@
             await writer.WriteAsync(Footer());
 
         private string Footer() =>
-            "\n" + new string('-', 50) + $"\nGenerated using {AppInfo.AppName} ()";
+            $"\n{new string('-', 50)}\nGenerated using {AppInfo.AppName} ({AppInfo.AppUrl})";
 
         private string Header(Metadata data) =>
-            data.dirName + " folder structure report\n" + new string('-', 50);
+            $"\'{data.dirName}\' folder structure report\n{new string('-', 50)}\n";
 
-        private string MetadataPanel(Metadata data)
-        {
-            string outString = string.Empty;
-            outString += "\nREPORT METADATA\n";
-            outString += new string('-', 10);
-            outString += "\nDIRECTORY NAME: " + data.dirName;
-            outString += "\nDIRECTORY PATH: " + data.dirPath;
-            outString += "\nPRIVILIGES: " + data.priviliges;
-            outString += "\nGENERATED AT: " + data.genDateTime + "\n";
-            outString += new string('-', 40) + "\n";
-            return outString;
-        }
+        private string MetadataPanel(Metadata m) =>
+            $"""
+                REPORT METADATA
+                -----------------
+                TARGET DIRECTORY: {m.dirName}
+                TARGET PATH: {m.dirPath}
+                ACESS LEVEL: {m.accessLevel}
+                GENERATED AT: {m.genDateTime}
+                ----------------------------------------
+                """ + "\n";
 
-        private string StatsPanel(Statistics data)
-        {
-            string outString = string.Empty;
-            outString += "STATISTICS\n";
-            outString += new string('-', 10);
-            outString += "\nGENERATED IN: " + data.genTimespan;
-            outString += "\nFOLDERS: " + data.folders;
-            outString += "\nFILES: " + data.files;
-            outString += "\nTOTAL SIZE: " + Utils.FileSystem.ComputeSize(data.totalSizeBytes);
-            outString += "\nSKIPPED FOLDERS: " + data.skippedFolders + "\n";
-            outString += new string('-', 40) + "\n";
-            return outString;
-        }
+        private string StatsPanel(Statistics s) =>
+            $"""
+                STATISTICS
+                ------------
+                GENERATED IN: {s.genTimespan}
+                FOLDERS: {s.folders}
+                FILES: {s.files}
+                TOTAL SIZE: {Utils.FileSystem.ComputeSize(s.totalSizeBytes)}
+                SKIPPED FOLDERS: {s.skippedFolders}
+                ----------------------------------------
+                """ + "\n";
     }
 }

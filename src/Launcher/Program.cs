@@ -10,13 +10,8 @@ namespace Launcher
         {
             Console.OutputEncoding = System.Text.Encoding.UTF8;
 
-            bool CliNeeded = true;
-            string? errMsg = null;
-
             if (args.Length == 0)
             {
-                if (errMsg != null)
-                    WriteMsg(errMsg, MsgType.Error);
                 CoreException? _ex = null;
                 try
                 {

@@ -4,15 +4,26 @@ namespace Core.Utils
 {
     public class ReportInfo
     {
-        public static string GenerateName(string targetPath) =>
-            Utils
-                .Text.CleanFileName(Path.GetFileName(Utils.Text.CleanPath(targetPath)))
-                .Replace(" ", "_");
+        public static string GenerateName(string targetPath)
+        {
+            string cleanedPath = Text.CleanPath(targetPath);
+            var root = Path.GetPathRoot(cleanedPath);
+            if (
+                root != null
+                && string.Equals(
+                    cleanedPath.TrimEnd(Path.DirectorySeparatorChar),
+                    root.TrimEnd(Path.DirectorySeparatorChar),
+                    StringComparison.OrdinalIgnoreCase
+                )
+            )
+                return "Drive_" + root.TrimEnd(Path.DirectorySeparatorChar).Replace(":", "");
+            return Text.CleanFileName(Path.GetFileName(cleanedPath)).Replace(" ", "_");
+        }
 
         private static string GetExtension(OutputFormat outputType) =>
             outputType switch
             {
-                OutputFormat.HTML => ".html",
+                OutputFormat.HTML => ".json",
                 OutputFormat.Markdown => ".md",
                 OutputFormat.Text => ".txt",
                 _ => throw new ArgumentOutOfRangeException(

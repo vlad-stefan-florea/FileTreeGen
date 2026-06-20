@@ -1,4 +1,6 @@
-﻿using System.Diagnostics.Metrics;
+﻿using System.Collections.Specialized;
+using System.Diagnostics.Metrics;
+using Core.Utils;
 using static CLI.ColorDisplay;
 using static Core.Settings;
 using static Core.Utils.Text;
@@ -31,7 +33,7 @@ namespace CLI
                     dir = string.Empty;
                 }
             }
-            return dir;
+            return CleanPath(dir);
         }
 
         /// <summary>
@@ -41,28 +43,19 @@ namespace CLI
         /// <returns>A bool based on the answer (true for YES; false for NO).</returns>
         public static bool AskYN(string prompt)
         {
-            int counter = 0;
-            string ans = string.Empty;
-
-            while (string.IsNullOrEmpty(ans))
-            {
-                counter++;
-                if (counter % AttemptLimit == 0)
-                    Console.Clear();
-
-                WriteMsg($"{prompt}\n[Y/N]", MsgType.Request);
-                ans = Console.ReadLine().Trim().ToLower();
-
-                if (string.IsNullOrEmpty(ans))
-                {
-                    WriteMsg($"Please answer with 'y' for YES or 'n' for NO", MsgType.Info);
-                    ans = string.Empty;
-                }
-            }
+            string? ans = string.Empty;
+            WriteMsg($"{prompt}\n[Y/N]", MsgType.Request);
+            ans = Console.ReadLine().Trim().ToLower();
             if (ans == "y")
+            {
+                Console.WriteLine("(ANS: YES)");
                 return true;
+            }
             else
+            {
+                Console.WriteLine("(ANS: NO)");
                 return false;
+            }
         }
 
         /// <summary>

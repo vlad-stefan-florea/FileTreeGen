@@ -120,7 +120,12 @@ namespace Core
                                 stats.files++;
                                 FileInfo info = new(filePath);
                                 if (info.Exists)
+                                {
                                     stats.totalSizeBytes += info.Length;
+                                    string ext = Path.GetExtension(filePath).ToLowerInvariant();
+                                    stats.Extensions[ext] =
+                                        stats.Extensions.GetValueOrDefault(ext) + 1;
+                                }
                             }
 
                             yield return new Node
