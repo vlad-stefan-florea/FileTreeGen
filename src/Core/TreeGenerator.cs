@@ -1,5 +1,4 @@
 ﻿using Core.Utils;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Core
 {
@@ -123,8 +122,8 @@ namespace Core
                                 {
                                     stats.totalSizeBytes += info.Length;
                                     string ext = Path.GetExtension(filePath).ToLowerInvariant();
-                                    stats.Extensions[ext] =
-                                        stats.Extensions.GetValueOrDefault(ext) + 1;
+                                    metadata.Extensions[ext] =
+                                        metadata.Extensions.GetValueOrDefault(ext) + 1;
                                 }
                             }
 

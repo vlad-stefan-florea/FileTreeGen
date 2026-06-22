@@ -7,6 +7,5 @@
         public int files { get; set; } = 0;
         public int skippedFolders { get; set; } = 0;
         public long totalSizeBytes { get; set; } = 0;
-        public Dictionary<string, int> Extensions { get; set; } = new();
     }
 }

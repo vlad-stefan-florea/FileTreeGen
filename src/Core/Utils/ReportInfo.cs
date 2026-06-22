@@ -23,7 +23,7 @@ namespace Core.Utils
         private static string GetExtension(OutputFormat outputType) =>
             outputType switch
             {
-                OutputFormat.HTML => ".json",
+                OutputFormat.HTML => ".html",
                 OutputFormat.Markdown => ".md",
                 OutputFormat.Text => ".txt",
                 _ => throw new ArgumentOutOfRangeException(

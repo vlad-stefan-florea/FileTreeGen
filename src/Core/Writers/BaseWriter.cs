@@ -6,22 +6,22 @@ namespace Core.Writers
     public abstract class BaseWriter
     {
         GenFlags _flags = new();
+        protected TreeGenerator Generator { get; private set; }
 
         public BaseWriter(GenFlags genFlags)
         {
             _flags = genFlags;
+            Generator = new TreeGenerator(_flags);
         }
 
-        protected abstract Task WriteHeaderAsync(StreamWriter writer, Metadata metadata);
-        protected abstract Task WriteMetadataAsync(StreamWriter writer, Metadata metadata);
+        protected abstract Task WriteHeaderAsync(StreamWriter writer);
+        protected abstract Task WriteMetadataAsync(StreamWriter writer);
         protected abstract Task WriteNodeAsync(StreamWriter writer, Node node);
-        protected abstract Task WriteStatisticsAsync(StreamWriter writer, Statistics stats);
+        protected abstract Task WriteStatisticsAsync(StreamWriter writer);
         protected abstract Task WriteFooterAsync(StreamWriter writer);
 
         public async Task WriteAsync()
         {
-            var generator = new TreeGenerator(_flags);
-
             string finalPath = _flags.outPath;
             string tempPath =
                 (_flags.noStatistics || _flags.treeOnly) ? finalPath : Path.GetTempFileName();
@@ -29,9 +29,7 @@ namespace Core.Writers
             // - change the temp path into the final one here (not in the file stream):
             // - write directly into the final file
             // - completely skip the second read-copy writing phase
-
-            var gen = new TreeGenerator(_flags);
-            var nodes = gen.GenerateTree();
+            var nodes = Generator.GenerateTree();
 
             //writing the tree (temp file)
             Stopwatch sw = new();
@@ -61,8 +59,8 @@ namespace Core.Writers
                     {
                         if (_flags.noStatistics && !_flags.treeOnly)
                         {
-                            await WriteHeaderAsync(tempWriter, gen.metadata);
-                            await WriteMetadataAsync(tempWriter, gen.metadata);
+                            await WriteHeaderAsync(tempWriter);
+                            await WriteMetadataAsync(tempWriter);
                         }
                         // write basic info only when no stats are generated
                         // -> else they should be added BEFORE the stats in the second phase
@@ -92,7 +90,7 @@ namespace Core.Writers
                 try
                 {
                     sw.Stop();
-                    gen.stats.genTimespan = sw.Elapsed.ToString(@"hh\:mm\:ss\.fff");
+                    Generator.stats.genTimespan = sw.Elapsed.ToString(@"hh\:mm\:ss\.fff");
                     using (
                         var finalStream = new FileStream(
                             finalPath,
@@ -114,10 +112,10 @@ namespace Core.Writers
                             )
                         )
                         {
-                            await WriteHeaderAsync(finalWriter, gen.metadata);
-                            await WriteMetadataAsync(finalWriter, gen.metadata);
+                            await WriteHeaderAsync(finalWriter);
+                            await WriteMetadataAsync(finalWriter);
                             if (!_flags.noStatistics)
-                                await WriteStatisticsAsync(finalWriter, gen.stats);
+                                await WriteStatisticsAsync(finalWriter);
                             await finalWriter.FlushAsync();
                         }
 

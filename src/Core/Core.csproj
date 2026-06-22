@@ -6,4 +6,16 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="HtmlTemplates\navbar.js" />
+    <None Remove="HtmlTemplates\styles.css" />
+    <None Remove="HtmlTemplates\treeLogic.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="HtmlTemplates\navbar.js" />
+    <EmbeddedResource Include="HtmlTemplates\styles.css" />
+    <EmbeddedResource Include="HtmlTemplates\treeLogic.js" />
+  </ItemGroup>
+
 </Project>
