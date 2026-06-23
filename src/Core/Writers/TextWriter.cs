@@ -70,7 +70,7 @@
                 ------------
                 GENERATED IN: {Generator.stats.genTimespan}
                 FOLDERS: {Generator.stats.folders}
-                FILES: {Generator.stats.files}
+                FILES: {Generator.Extensions.Values.Sum()}
                 TOTAL SIZE: {Utils.FileSystem.ComputeSize(Generator.stats.totalSizeBytes)}
                 SKIPPED FOLDERS: {Generator.stats.skippedFolders}
                 ----------------------------------------

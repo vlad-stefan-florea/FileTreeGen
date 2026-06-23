@@ -9,6 +9,7 @@ namespace Core
         private GenFlags _flags = new();
         public Metadata metadata = new();
         public Statistics stats = new();
+        public Dictionary<string, int> Extensions { get; set; } = new();
 
         public TreeGenerator(GenFlags genFlags)
         {
@@ -76,7 +77,9 @@ namespace Core
                         if (FileSystem.IsReparsePoint(subDir.FullName))
                         {
                             if (!_flags.noStatistics)
-                                stats.files++;
+                            {
+                                Extensions[""] = Extensions.GetValueOrDefault("") + 1;
+                            }
                             yield return new Node
                             {
                                 Id = _currentId++,
@@ -116,14 +119,12 @@ namespace Core
                         {
                             if (!_flags.noStatistics)
                             {
-                                stats.files++;
                                 FileInfo info = new(filePath);
                                 if (info.Exists)
                                 {
                                     stats.totalSizeBytes += info.Length;
                                     string ext = Path.GetExtension(filePath).ToLowerInvariant();
-                                    metadata.Extensions[ext] =
-                                        metadata.Extensions.GetValueOrDefault(ext) + 1;
+                                    Extensions[ext] = Extensions.GetValueOrDefault(ext) + 1;
                                 }
                             }
 

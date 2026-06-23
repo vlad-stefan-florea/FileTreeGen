@@ -1,15 +1,13 @@
-﻿using System.Net;
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace Core.Writers
 {
     public sealed class HtmlWriter : BaseWriter
     {
         private static bool isFirstNode = true;
-        private static string? _headerCache;
-        private static string? _footerCache;
-        private static GenFlags _flags;
+        private static GenFlags _flags = new();
 
         public HtmlWriter(GenFlags flags)
             : base(flags)
@@ -24,7 +22,7 @@ namespace Core.Writers
             await writer.WriteAsync(Footer());
 
         protected override async Task WriteMetadataAsync(StreamWriter writer) =>
-            await writer.WriteAsync(MetadataPanel()); // Înăuntru poți folosi și stats dacă ai nevoie!
+            await writer.WriteAsync(MetadataPanel());
 
         protected override async Task WriteStatisticsAsync(StreamWriter writer) =>
             await writer.WriteAsync(StatsPanel());
@@ -45,8 +43,7 @@ namespace Core.Writers
             + HtmlStruct.Styles()
             + "</head>"
             + "<body>"
-            + HtmlStruct.Navbar()
-            + $"<h1>'{Generator.metadata.dirName}' folder structure report</h1>";
+            + "<div class=\"panelsRow\">";
 
         private class HtmlStruct
         {
@@ -64,32 +61,21 @@ namespace Core.Writers
                 return htmlHeader.ToString();
             }
 
-            internal static string Navbar() =>
-                """
-                    <div class="navbar">
-                      <div class="nav-buttons">
-                        <button onclick="expandAll()" aria-label="Expand all nodes">
-                          <i class="fa-solid fa-angles-down"></i> Expand All
-                        </button>
-                        <button onclick="collapseAll()" aria-label="Collapse all nodes">
-                          <i class="fa-solid fa-angles-up"></i> Collapse All
-                        </button>
-                        <button onclick="toggleTheme()" aria-label="Change Theme">
-                          <i class="fa-solid fa-circle-half-stroke"></i> Theme
-                        </button>
-                      </div>
-                    </div>
-                    """;
-
             internal static string RemainingBody() =>
-                "<div id=\"treeContainer\"></div>"
+                "</div><hr/>"
+                + "<div id=\"treeContainer\"></div>"
                 + $"<hr/><footer>Generated using <a href=\"{AppInfo.AppUrl}\" target=\"_blank\">{AppInfo.AppName}</a></footer>"
                 + "<script>const nodeList=[";
 
-            internal static string Scripts(string[] foundExtensions)
+            internal static string Scripts(string[] foundExtensions, string dirName)
             {
                 StringBuilder html = new();
-                html.Append(HtmlTemplates.Icons.GenSvgCollectionHtml(foundExtensions));
+
+                if (!_flags.noIcons)
+                    html.Append(HtmlTemplates.Icons.GenSvgCollectionHtml(foundExtensions));
+                html.Append(
+                    $"<script>const noIcons={(_flags.noIcons ? "true" : "false")};</script>"
+                );
                 html.Append($"<script>");
                 html.Append(
                     Utils.EmbeddedReader.ReadEmbeddedResource("Core.HtmlTemplates.navbar.js")
@@ -100,14 +86,19 @@ namespace Core.Writers
                     Utils.EmbeddedReader.ReadEmbeddedResource("Core.HtmlTemplates.treeLogic.js")
                 );
                 html.Append("</script>");
-                return html.ToString();
+                return html.ToString().Replace("___dirName___", dirName);
             }
         }
 
         private string MetadataPanel()
         {
             StringBuilder html = new();
-            html.Append("METADATA");
+            html.Append("<div class=\"panel\"><h4>REPORT METADATA</h4><ul>");
+            html.Append($"<li><b>TARGET DIRECTORY:</b> {Generator.metadata.dirName}</li>");
+            html.Append($"<li><b>TARGET PATH:</b> {Generator.metadata.dirPath}</li>");
+            html.Append($"<li><b>ACCESS LEVEL:</b> {Generator.metadata.accessLevel}</li>");
+            html.Append($"<li><b>GENERATED AT:</b> {Generator.metadata.genDateTime}</li>");
+            html.Append("</ul></div>");
             if (_flags.noStatistics)
                 html.Append(HtmlStruct.RemainingBody());
             return html.ToString();
@@ -116,14 +107,22 @@ namespace Core.Writers
         private string StatsPanel()
         {
             StringBuilder html = new();
-            html.Append("STATISTICS<hr/>");
+            html.Append("<div class=\"panel\"><h4>STATISTICS</h4><ul>");
+            html.Append($"<li><b>GENERATED IN:</b> {Generator.stats.genTimespan}</li>");
+            html.Append($"<li><b>FOLDERS:</b> {Generator.stats.folders}</li>");
+            html.Append($"<li><b>SKIPPED FOLDERS:</b> {Generator.stats.skippedFolders}</li>");
+            html.Append($"<li><b>FILES:</b> {Generator.Extensions.Values.Sum()}</li>");
+            html.Append(
+                $"<li><b>TOTAL SIZE:</b> {Utils.FileSystem.ComputeSize(Generator.stats.totalSizeBytes)}</li>"
+            );
+            html.Append("</ul></div>");
             html.Append(HtmlStruct.RemainingBody());
             return html.ToString();
         }
 
         private string Footer() =>
             "];</script>"
-            + HtmlStruct.Scripts(Generator.metadata.Extensions.Keys.ToArray())
+            + HtmlStruct.Scripts(Generator.Extensions.Keys.ToArray(), Generator.metadata.dirName)
             + "</body></html>";
     }
 }

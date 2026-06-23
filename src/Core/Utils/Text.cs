@@ -7,13 +7,13 @@
             if (path == null)
                 return string.Empty;
             string cleaned = path.Trim().Replace("\"", "");
-            if (cleaned.Length == 2 && cleaned.EndsWith(":")) // disk root format: "C:"
+            if (cleaned.Length == 2 && cleaned.EndsWith(":")) // disk root format: "X:"
             {
                 cleaned += Path.DirectorySeparatorChar;
             }
             if (cleaned.Length > 3)
             {
-                // ensures that '\' is removed from the end if not disk root format
+                // ensures that '\' is removed from the end (excluding disk/root format "X:\")
                 // "C:\" - 3 chars - is not affected
                 cleaned = cleaned.TrimEnd(
                     Path.DirectorySeparatorChar,

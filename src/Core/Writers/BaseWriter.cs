@@ -63,7 +63,10 @@ namespace Core.Writers
                             await WriteMetadataAsync(tempWriter);
                         }
                         // write basic info only when no stats are generated
-                        // -> else they should be added BEFORE the stats in the second phase
+                        // -> if stats are generated they should be added BEFORE the stats
+                        // the order would be:
+                        // header -> metadata -> .................... -> stats -> | final
+                        //                    -> tree + footer (temp) -> ..... -> | file
 
                         foreach (var node in nodes)
                         {

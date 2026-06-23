@@ -1,113 +1,240 @@
 * {
-    box-sizing: border-box;
-    font-size: medium;
+  box-sizing: border-box;
 }
+
 :root {
-    --bkg: #f7f7f7;
-    --text: #000000;
-    --guideLines: #787878;
-    --hoverHeader: #dcdcdc;
-    --fileItem: #444;
-    --accent: #3498db;
+  --bkg: #f7f7f7;
+  --text: #000000;
+  --guideLines: #787878;
+  --hoverHeader: #dcdcdc;
+  --fileItem: #444;
+  --accent: #3498db;
+
+  --ico-expand: var(--text);
+  --ico-collapse: var(--text);
+  --ico-theme: var(--text);
+
+  --ico-folder_closed: #df9a00;
+  --ico-folder_open: #ffb300;
+  --ico-default: #757575;
+  --ico-text: #2b579a;
+  --ico-audio: #00a300;
+  --ico-video: #da532c;
+  --ico-image: #00828a;
+  --ico-code: #e81123;
+  --ico-link: #6c4675;
+  --ico-model: #68217a;
+  --ico-pdf: #b91d47;
+  --ico-database: #1e7145;
+  --ico-application: #0078d7;
+  --ico-archive: #fbc02d;
+  --ico-spreadsheet: #107c41;
+  --ico-presentation: #c43e1c;
+  --ico-book: #007b83;
+  --ico-comic_book: #6a1b9a;
+  --ico-torrent: #2e7d32;
 }
+
 body.dark-mode {
-    --bkg: #1f1f1f;
-    --text: #f9f9f9;
-    --guideLines: #a7a7a7;
-    --hoverHeader: #3b3b3b;
-    --fileItem: #d3d3d3;
+  --bkg: #1f1f1f;
+  --text: #f9f9f9;
+  --guideLines: #a7a7a7;
+  --hoverHeader: #3b3b3b;
+  --fileItem: #d3d3d3;
+
+  --ico-expand: var(--text);
+  --ico-collapse: var(--text);
+  --ico-theme: var(--text);
+
+  --ico-folder_closed: #ffca28;
+  --ico-folder_open: #ffe082;
+  --ico-default: #b0bec5;
+  --ico-text: #90caf9;
+  --ico-audio: #a5d6a7;
+  --ico-video: #ffab91;
+  --ico-image: #80deea;
+  --ico-code: #ef9a9a;
+  --ico-link: #d1c4e9;
+  --ico-model: #e1bee7;
+  --ico-pdf: #ff8a80;
+  --ico-database: #a5d6a7;
+  --ico-application: #29b6f6;
+  --ico-archive: #fff59d;
+  --ico-spreadsheet: #a5d6a7;
+  --ico-presentation: #ffcc80;
+  --ico-book: #80deea;
+  --ico-comic_book: #e1bee7;
+  --ico-torrent: #c5e1a5;
 }
+
 body {
-    max-width: 100%;
-    font-family: "Segoe UI", monospace;
-    background-color: var(--bkg);
-    color: var(--text);
-    transition: background 0.3s, color 0.3s;
+  max-width: 100%;
+  font-family: "Segoe UI", monospace;
+  background-color: var(--bkg);
+  color: var(--text);
 }
-.navbar button {
-    position: relative;
-    cursor: pointer;
-    border: 1px solid var(--text);
-    padding: 5px 10px;
-    transition: all 0.3s;
-    color: var(--text);
-    background-color: var(--bkg);
-    margin-right: 5px;
+
+button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin: 0;
 }
-.navbar button:hover {
-        background-color: var(--hoverHeader);
-}
+
 .navbar {
-    position: sticky;
-    top: 0;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    padding: 5px;
-    user-select: none;
-    background-color: var(--bkg);
-    border: 2px solid var(--fileItem);
-    z-index: 2;
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: row;
+  user-select: none;
+  color: inherit;
+  background-color: inherit;
+  border: 2px solid var(--fileItem);
+  z-index: 2;
 }
+
+.navbar button {
+  position: relative;
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  border-right: 2px solid var(--text);
+  padding: 5px 10px;
+  color: inherit;
+  background-color: inherit;
+  gap: 0.5rem;
+}
+
+.navbar button:hover {
+  background-color: var(--hoverHeader);
+}
+
+.navbar h3 {
+  margin: 0;
+  padding-inline: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-right: 2px solid var(--text);
+}
+
 #treeContainer {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
 }
+
 .h {
-    cursor: pointer;
-    padding: 2px 15px;
-    gap: 0.5rem;
-    display: flex;
-    align-items: center;
-    user-select: none;
-    position: relative;
-    transition: all 0.2s;
-    background: transparent;
-    border: none;
-    width: 100%;
-    font-family: inherit;
-    font-size: inherit;
-    font-weight: inherit;
-    color: inherit;
+  padding: 2px 15px;
+  gap: 0.5rem;
+  display: flex;
+  align-items: center;
+  user-select: none;
+  position: relative;
+  background: none;
+  border: none;
+  width: 100%;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
 }
+
 .h:hover {
-    background-color: var(--hoverHeader);
-    font-weight: bold;
+  background-color: var(--hoverHeader);
+  font-weight: bold;
 }
+
 .h:link,
 .h:visited,
 .h:active {
-    color: inherit;
-    text-decoration: none;
+  color: inherit;
+  text-decoration: none;
 }
+
 .h:not(#node-0)::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 50%;
-    width: 15px;
-    height: 2px;
-    background: var(--guideLines);
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 15px;
+  height: 2px;
+  background: var(--guideLines);
 }
+
 .ico {
-    width: 1.5rem;
-    height: 1.5rem;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
-ico svg {
-    width: 100%;
-    height: 100%;
-    fill: currentColor;
-    flex-shrink: 0;
+
+.ico svg {
+  width: 100%;
+  height: 100%;
+  flex-shrink: 0;
 }
+
 .c {
-    margin-left: 25px;
-    border-left: 2px solid var(--guideLines);
-    display: block;
-    width: calc(100% - 25px);
+  margin-left: 25px;
+  border-left: 2px solid var(--guideLines);
+  display: block;
+  width: calc(100% - 25px);
+}
+
+.panelsRow {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-block: 1rem;
+}
+
+.panel {
+  border: 2px solid var(--guideLines);
+  max-width: 50%;
+  width: auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 5px 10px;
+  overflow: visible;
+  white-space: normal;
+  word-break: break-all;
+  overflow-wrap: anywhere;
+  gap: 0.5rem;
+}
+
+.panel h4 {
+  position: relative;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  border-bottom: 2px solid var(--guideLines);
+  padding: 0.2rem;
+}
+
+.panel ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+}
+
+footer a {
+  color: #0097a7;
+}
+
+footer a:visited {
+  color: #7c4dff;
+}
+
+footer a:hover {
+  color: #00b8d4;
+}
+
+footer a:active {
+  color: #ff5252;
 }
