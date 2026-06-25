@@ -1,8 +1,6 @@
 ﻿using System.Collections.Specialized;
-using System.Diagnostics.Metrics;
-using Core.Utils;
+using System.Runtime.CompilerServices;
 using static CLI.ColorDisplay;
-using static Core.Settings;
 using static Core.Utils.Text;
 
 namespace CLI
@@ -59,6 +57,89 @@ namespace CLI
         }
 
         /// <summary>
+        /// Asks for an integer value between the 'min' and 'max' provied values.
+        /// </summary>
+        /// <param name="prompt">The prompt to be displayed.</param>
+        /// <param name="min">The minimum value.</param>
+        /// <param name="max">The maximum value.</param>
+        /// <returns></returns>
+        public static int AskForInt(string prompt, int min, int max)
+        {
+            string? ans = string.Empty;
+            int counter = 0;
+            while (true)
+            {
+                counter++;
+                if (counter % AttemptLimit == 0)
+                {
+                    Console.Clear();
+                    WriteMsg($"{prompt} [{min}<->{max}]", MsgType.Request);
+                }
+                WriteMsg($"{prompt} [{min}<->{max}]", MsgType.Request);
+                ans = Console.ReadLine().Trim().ToLower();
+                if (!string.IsNullOrEmpty(ans) && int.TryParse(ans, out int n))
+                {
+                    if (n >= min && n <= max)
+                        return n;
+                    else
+                        continue;
+                }
+                else
+                    continue;
+            }
+        }
+
+        public static HashSet<string> AskForExtensions(
+            string prompt,
+            HashSet<string> currentExtensions
+        )
+        {
+            string? ans = string.Empty;
+            int counter = 0;
+            while (true)
+            {
+                counter++;
+                if (counter % AttemptLimit == 0)
+                {
+                    Console.Clear();
+                    WriteMsg($"{prompt}", MsgType.Request);
+                }
+                WriteMsg($"{prompt}", MsgType.Request);
+                ans = Console.ReadLine().Trim().ToLower();
+                if (string.IsNullOrWhiteSpace(ans))
+                {
+                    WriteMsg("Operation canceled", MsgType.Warning);
+                    WriteMsg("Use '--clear' to clear the list", MsgType.Info);
+                    continue;
+                }
+                else
+                {
+                    if (ans.Contains("--clear"))
+                        return new HashSet<string>();
+                    var result = Core.Utils.ConsoleParser.ParseExtensionList(ans);
+                    if (result.Any())
+                    {
+                        currentExtensions.UnionWith(result);
+                        return currentExtensions;
+                    }
+                    else
+                    {
+                        WriteMsg(
+                            "Please write the extensions as in the following examples:\n"
+                                + "\t- For simple extensions: .txt;.docx;.html;.exe"
+                                + "\t- For no/empty extensions, use '\"\"' OR 'none'"
+                                + "\t- The separator characters can be either ';' or ','"
+                                + "\t- Extensions starting with '.' is optional"
+                                + "\t- Use '--clear' to clear the list",
+                            MsgType.Info
+                        );
+                        continue;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Displays a choice menu based on the given structure.
         /// </summary>
         /// <param name="T">The Enum containing all the available options.</typeparam>
@@ -71,7 +152,7 @@ namespace CLI
             string[] options = Enum.GetNames(typeof(T));
             T[] values = Enum.GetValues<T>();
 
-            WriteMsg(prompt, MsgType.Choice, options);
+            WriteMsg(prompt + " ('q' to quit)", MsgType.Choice, options);
 
             while (true)
             {
@@ -79,7 +160,7 @@ namespace CLI
                 if (counter % AttemptLimit == 0)
                 {
                     Console.Clear();
-                    WriteMsg(prompt, MsgType.Choice, options);
+                    WriteMsg(prompt + " ('q' to quit)", MsgType.Choice, options);
                 }
 
                 WriteMsg("Choice", MsgType.Request);

@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Security.Cryptography;
+using System.Text;
 
 namespace Core.HtmlTemplates
 {
@@ -145,42 +146,50 @@ namespace Core.HtmlTemplates
             "folder_closed",
             "folder_open",
             "default",
-            "theme",
-            "expand",
-            "collapse",
         };
+        internal static HashSet<string> essentialIcons = new() { "theme", "expand", "collapse" };
 
-        public static string GenSvgCollectionHtml(string[] extensions)
+        public static string GenSvgCollectionHtml(string[] extensions, bool essentialsOnly)
         {
             StringBuilder jsExtensionMap = new();
-            jsExtensionMap.AppendLine("<script>const EXTENSION_MAP = {");
-            foreach (string ext in extensions)
+            jsExtensionMap.Append("<script>");
+
+            jsExtensionMap.AppendLine("const EXTENSION_MAP = {");
+            if (!essentialsOnly)
             {
-                string cleanExt = ext.ToLower().Trim();
-                if (!cleanExt.StartsWith("."))
-                    cleanExt = "." + cleanExt;
-                var matchingGroup = FileTypes.FirstOrDefault(kvp => kvp.Value.Contains(cleanExt));
-                if (matchingGroup.Key != null)
+                foreach (string ext in extensions)
                 {
-                    neededIconTypes.Add(matchingGroup.Key);
-                    string jsExtKey = cleanExt.TrimStart('.');
-                    jsExtensionMap.AppendLine($"  \"{jsExtKey}\": \"{matchingGroup.Key}\",");
+                    string cleanExt = ext.ToLower().Trim();
+                    if (!cleanExt.StartsWith("."))
+                        cleanExt = "." + cleanExt;
+                    var matchingGroup = FileTypes.FirstOrDefault(kvp =>
+                        kvp.Value.Contains(cleanExt)
+                    );
+                    if (matchingGroup.Key != null)
+                    {
+                        neededIconTypes.Add(matchingGroup.Key);
+                        string jsExtKey = cleanExt.TrimStart('.');
+                        jsExtensionMap.AppendLine($"  \"{jsExtKey}\": \"{matchingGroup.Key}\",");
+                    }
                 }
             }
             jsExtensionMap.AppendLine("};");
 
-            foreach (string ext in extensions)
-            {
-                string cleanExt = ext.ToLower().Trim();
-                if (!cleanExt.StartsWith("."))
-                    cleanExt = "." + cleanExt;
-                var matchingGroup = FileTypes.FirstOrDefault(kvp => kvp.Value.Contains(cleanExt));
-                if (matchingGroup.Key != null)
-                    neededIconTypes.Add(matchingGroup.Key);
-            }
             StringBuilder jsIcons = new();
             jsIcons.AppendLine("const ICONS = {");
-            foreach (string iconKey in neededIconTypes)
+            if (!essentialsOnly)
+            {
+                foreach (string iconKey in neededIconTypes)
+                {
+                    if (Paths.TryGetValue(iconKey, out string? pathData))
+                    {
+                        jsIcons.AppendLine(
+                            $"\"{iconKey}\": `<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 640 640\" fill=\"var(--ico-{iconKey}, var(--text))\"><path d=\"{pathData}\"/></svg>`,"
+                        );
+                    }
+                }
+            }
+            foreach (string iconKey in essentialIcons)
             {
                 if (Paths.TryGetValue(iconKey, out string? pathData))
                 {

@@ -1,6 +1,5 @@
 ﻿using System.Text;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 
 namespace Core.Writers
 {
@@ -43,12 +42,12 @@ namespace Core.Writers
             + HtmlStruct.Styles()
             + "</head>"
             + "<body>"
-            + "<div class=\"panelsRow\">";
+            + "<div class=\"prow\">";
 
         private class HtmlStruct
         {
             internal static string HtmlStart(string dirName) =>
-                $"<!doctype html><html><head><title>{Utils.ReportInfo.GenerateName(dirName)}</title>";
+                $"<!doctype html><html lang=\"en\"><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><head><title>{Utils.ReportInfo.GenerateName(dirName) + " " + AppInfo.AppName + " report"}</title>";
 
             internal static string Styles()
             {
@@ -58,7 +57,7 @@ namespace Core.Writers
                     Utils.EmbeddedReader.ReadEmbeddedResource("Core.HtmlTemplates.styles.css")
                 );
                 htmlHeader.Append("</style>");
-                return htmlHeader.ToString();
+                return htmlHeader.ToString().Replace("\n", "").Replace("\r", "");
             }
 
             internal static string RemainingBody() =>
@@ -71,8 +70,9 @@ namespace Core.Writers
             {
                 StringBuilder html = new();
 
-                if (!_flags.noIcons)
-                    html.Append(HtmlTemplates.Icons.GenSvgCollectionHtml(foundExtensions));
+                html.Append(
+                    HtmlTemplates.Icons.GenSvgCollectionHtml(foundExtensions, _flags.noIcons)
+                );
                 html.Append(
                     $"<script>const noIcons={(_flags.noIcons ? "true" : "false")};</script>"
                 );
@@ -86,14 +86,25 @@ namespace Core.Writers
                     Utils.EmbeddedReader.ReadEmbeddedResource("Core.HtmlTemplates.treeLogic.js")
                 );
                 html.Append("</script>");
-                return html.ToString().Replace("___dirName___", dirName);
+                return html.ToString()
+                    .Replace("___dirName___", dirName)
+                    .Replace("\n", "")
+                    .Replace("\r", "");
             }
         }
 
         private string MetadataPanel()
         {
             StringBuilder html = new();
-            html.Append("<div class=\"panel\"><h4>REPORT METADATA</h4><ul>");
+            string ariaLabel =
+                "REPORT METADATA SECTION: "
+                + $"TARGET DIRECTORY:{Generator.metadata.dirName} ;"
+                + $"TARGET PATH: {Generator.metadata.dirPath} ;"
+                + $"ACCESS LEVEL: {Generator.metadata.accessLevel} ;"
+                + $"GENERATED AT: {Generator.metadata.genDateTime} ;";
+            html.Append(
+                $"<div class=\"p\" tabindex=\"0\" aria-label=\"{ariaLabel}\"><h4>REPORT METADATA</h4><ul>"
+            );
             html.Append($"<li><b>TARGET DIRECTORY:</b> {Generator.metadata.dirName}</li>");
             html.Append($"<li><b>TARGET PATH:</b> {Generator.metadata.dirPath}</li>");
             html.Append($"<li><b>ACCESS LEVEL:</b> {Generator.metadata.accessLevel}</li>");
@@ -101,13 +112,22 @@ namespace Core.Writers
             html.Append("</ul></div>");
             if (_flags.noStatistics)
                 html.Append(HtmlStruct.RemainingBody());
-            return html.ToString();
+            return html.ToString().Replace("\n", "").Replace("\r", "");
         }
 
         private string StatsPanel()
         {
             StringBuilder html = new();
-            html.Append("<div class=\"panel\"><h4>STATISTICS</h4><ul>");
+            string ariaLabel =
+                "BASIC STATISTICS SECTION: "
+                + $"GENERATED IN: {Generator.stats.genTimespan} ;"
+                + $"FOLDERS: {Generator.stats.folders} ;"
+                + $"SKIPPED FOLDERS: {Generator.stats.skippedFolders} ;"
+                + $"FILES: {Generator.Extensions.Values.Sum()} ;"
+                + $"TOTAL SIZE: {Utils.FileSystem.ComputeSize(Generator.stats.totalSizeBytes)} ;";
+            html.Append(
+                $"<div class=\"p\" tabindex=\"0\" aria-label=\"{ariaLabel}\"><h4>BASIC STATISTICS</h4><ul>"
+            );
             html.Append($"<li><b>GENERATED IN:</b> {Generator.stats.genTimespan}</li>");
             html.Append($"<li><b>FOLDERS:</b> {Generator.stats.folders}</li>");
             html.Append($"<li><b>SKIPPED FOLDERS:</b> {Generator.stats.skippedFolders}</li>");
@@ -116,7 +136,104 @@ namespace Core.Writers
                 $"<li><b>TOTAL SIZE:</b> {Utils.FileSystem.ComputeSize(Generator.stats.totalSizeBytes)}</li>"
             );
             html.Append("</ul></div>");
+            html.Append(AdvnacedStatsPanel(Generator.Extensions));
             html.Append(HtmlStruct.RemainingBody());
+            return html.ToString().Replace("\n", "").Replace("\r", "");
+        }
+
+        private static string AdvnacedStatsPanel(Dictionary<string, int> extensions)
+        {
+            if (extensions == null || !extensions.Any())
+                return "";
+
+            string[] barChartColors = new[]
+            {
+                "var(--ico-application)",
+                "var(--ico-code)",
+                "var(--ico-audio)",
+                "var(--ico-comic_book)",
+                "var(--ico-book)",
+                "var(--guideLines)",
+            };
+            var extDescending = extensions.OrderByDescending(x => x.Value);
+            var top5 = extDescending.Take(5).ToDictionary();
+            var top5Array = top5.ToArray();
+
+            int total = extensions.Values.Sum(),
+                others = total - top5.Values.Sum(),
+                actualTopCount = top5Array.Length;
+
+            bool hasOthers = others > 0;
+            int totalElementsToRender = actualTopCount + (hasOthers ? 1 : 0);
+
+            var chartDataList = new List<(string ext, double percentage)>();
+
+            string ariaLabel = "FILE TYPES DISTRIBUTION CHART:";
+            for (int i = 0; i < actualTopCount; i++)
+            {
+                double pct = (double)top5Array[i].Value / total * 100;
+                chartDataList.Add(
+                    (string.IsNullOrEmpty(top5Array[i].Key) ? "Unknown" : top5Array[i].Key, pct)
+                );
+                ariaLabel +=
+                    $" {pct:0}% {(string.IsNullOrEmpty(top5Array[i].Key) ? "Unknown" : top5Array[i].Key).Replace(".", "")} ;";
+            }
+            if (hasOthers)
+            {
+                double othersPct = (double)others / total * 100;
+                chartDataList.Add(("Others", othersPct));
+                ariaLabel += $" {othersPct:0}% Other file extensions ;";
+            }
+
+            StringBuilder html = new();
+            // panel
+            html.Append(
+                $"<div class=\"p p-extended\" tabindex=\"0\" aria-label=\"{ariaLabel}\"><h4>FILE TYPES DISTRIBUTION CHART</h4>"
+            );
+            // bar chart
+            html.Append("<div class=\"sbc-container\"><div class=\"sbc-bar\">");
+            // bar chart data
+            for (int i = 0; i < chartDataList.Count; i++)
+            {
+                string color =
+                    (i == chartDataList.Count - 1 && hasOthers)
+                        ? barChartColors[5]
+                        : barChartColors[i % 5];
+                html.Append(
+                    $"<div style=\"width: {chartDataList[i].percentage:0}%; background-color: {color};\"></div>"
+                );
+            }
+            // bar chart legend
+            html.Append("</div><div class=\"sbc-l-c\">");
+            for (int i = 0; i < chartDataList.Count; i++)
+            {
+                string color =
+                    (i == chartDataList.Count - 1 && hasOthers)
+                        ? barChartColors[5]
+                        : barChartColors[i % 5];
+                string extLabel =
+                    chartDataList[i].ext == "Others"
+                        ? "Others"
+                        : $"{chartDataList[i].ext.ToUpper()}";
+                html.Append(
+                    $"<span class=\"sbc-l-el\" style=\"--sbcLegendDot: {color};\">{chartDataList[i].percentage:0}% {extLabel}</span>"
+                );
+            }
+            html.Append("</div></div></div>");
+            // all extensions list
+            html.Append(
+                $"<div class=\"p p-extended\" tabindex=\"0\" aria-label=\"EXTENSIONS LIST SECTION\"><h4>EXTENSIONS LIST ({extensions.Count})</h4>"
+            );
+            html.Append(
+                $"<div class=\"other-exts\" aria-label=\"EXTENSIONS COMPLETE LIST ({extensions.Count} unique extensions)\">"
+            );
+            int c = 1;
+            foreach (var extPair in extDescending)
+                html.Append(
+                    $"<span>{c++}) <b>{extPair.Key}</b> ({((double)extPair.Value / total * 100).ToString("0.##")}%)</span>"
+                );
+
+            html.Append("</div></div>");
             return html.ToString();
         }
 

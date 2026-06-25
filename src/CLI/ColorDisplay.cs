@@ -1,6 +1,4 @@
-﻿using System.Linq.Expressions;
-
-namespace CLI
+﻿namespace CLI
 {
     public class ColorDisplay
     {

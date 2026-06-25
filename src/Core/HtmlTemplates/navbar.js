@@ -19,7 +19,7 @@ function expandAll() {
     if (!proceed) return;
   }
   const closedFolders = Array.from(nodeMap.values())
-    .filter((node) => node.Type === 0 && parentsWithChildren.has(node.Id))
+    .filter((node) => !node.IsFile && !node.IsEmptyDir)
     .sort((a, b) => a.Id - b.Id);
   if (closedFolders.length === 0) return;
   let currentIndex = 0;
@@ -58,8 +58,8 @@ function collapseAll() {
 }
 function renderNavbar() {
   const html = `
-      <div class="navbar">
-        <h3>'___dirName___' folder structure report</h3>
+      <div class="nav">
+        <h3 tabindex="0">'___dirName___' folder structure report</h3>
         <button onclick="expandAll()" aria-label="Expand all nodes">
           <span class="ico">${ICONS["expand"] || ""}</span>
           Expand All

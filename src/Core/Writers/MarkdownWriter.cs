@@ -17,18 +17,17 @@
             if (!_flags.noFormatting)
             {
                 if (node.Level > 0)
-                    prefix = new string(' ', (node.Level - 1) * 2) + "-";
+                    prefix = new string(' ', (node.Level - 1) * 2) + "- ";
                 if (!_flags.noIcons)
-                {
-                    symbol = node.Type switch
-                    {
-                        NodeType.Folder => "📁",
-                        NodeType.File => "📄",
-                        _ => string.Empty,
-                    };
-                }
+                    symbol = node.IsFile ? "📄 " : "📁 ";
+                if (node.IsEmptyDir)
+                    node.Name += " (Empty)";
+                else if (node.IsSkipped)
+                    node.Name += " (Skipped)";
+                else if (node.IsUnscanned)
+                    node.Name += " (Not Scanned)";
             }
-            await writer.WriteAsync($"{prefix} {symbol} {node.Name}\r\n");
+            await writer.WriteAsync($"{prefix}{symbol}{node.Name}\r\n");
         }
 
         protected override async Task WriteMetadataAsync(StreamWriter writer) =>
@@ -51,21 +50,22 @@
         private string MetadataPanel() =>
             $"""
                 ### REPORT METADATA
-                - **TARGET DIRECTORY**: {Generator.metadata.dirName}
-                - **TARGET PATH**: {Generator.metadata.dirPath}
-                - **ACESS LEVEL**: {Generator.metadata.accessLevel}
-                - **GENERATED AT**: {Generator.metadata.genDateTime}
+                - **TARGET DIRECTORY:**: {Generator.metadata.dirName}
+                - **TARGET PATH:**: {Generator.metadata.dirPath}
+                - **ACESS LEVEL:**: {Generator.metadata.accessLevel}
+                - **GENERATED AT:**: {Generator.metadata.genDateTime}
                 ---
                 """ + "\n";
 
         private string StatsPanel() =>
             $"""
                 ### STATISTICS
-                - **GENERATED IN**: {Generator.stats.genTimespan}
-                - **FOLDERS**: {Generator.stats.folders}
+                - **GENERATED IN:**: {Generator.stats.genTimespan}
+                - **FOLDERS:**: {Generator.stats.folders}
                 - **FILES**: {Generator.Extensions.Values.Sum()}
-                - **TOTAL SIZE**: {Utils.FileSystem.ComputeSize(Generator.stats.totalSizeBytes)}
-                - **SKIPPED FOLDERS**: {Generator.stats.skippedFolders}
+                - **UNIQUE EXTENSIONS:** {Generator.Extensions.Count}
+                - **TOTAL SIZE:**: {Utils.FileSystem.ComputeSize(Generator.stats.totalSizeBytes)}
+                - **SKIPPED FOLDERS:**: {Generator.stats.skippedFolders}
                 ---
                 """ + "\n";
     }

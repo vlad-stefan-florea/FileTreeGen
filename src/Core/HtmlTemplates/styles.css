@@ -9,11 +9,9 @@
   --hoverHeader: #dcdcdc;
   --fileItem: #444;
   --accent: #3498db;
-
   --ico-expand: var(--text);
   --ico-collapse: var(--text);
   --ico-theme: var(--text);
-
   --ico-folder_closed: #df9a00;
   --ico-folder_open: #ffb300;
   --ico-default: #757575;
@@ -41,11 +39,9 @@ body.dark-mode {
   --guideLines: #a7a7a7;
   --hoverHeader: #3b3b3b;
   --fileItem: #d3d3d3;
-
   --ico-expand: var(--text);
   --ico-collapse: var(--text);
   --ico-theme: var(--text);
-
   --ico-folder_closed: #ffca28;
   --ico-folder_open: #ffe082;
   --ico-default: #b0bec5;
@@ -81,7 +77,7 @@ button {
   margin: 0;
 }
 
-.navbar {
+.nav {
   position: sticky;
   top: 0;
   display: flex;
@@ -89,27 +85,27 @@ button {
   user-select: none;
   color: inherit;
   background-color: inherit;
-  border: 2px solid var(--fileItem);
+  border: 2px solid var(--guideLines);
   z-index: 2;
 }
 
-.navbar button {
+.nav button {
   position: relative;
   display: flex;
   width: fit-content;
   align-items: center;
-  border-right: 2px solid var(--text);
+  border-right: 2px solid var(--guideLines);
   padding: 5px 10px;
   color: inherit;
   background-color: inherit;
   gap: 0.5rem;
 }
 
-.navbar button:hover {
+.nav button:hover {
   background-color: var(--hoverHeader);
 }
 
-.navbar h3 {
+.nav h3 {
   margin: 0;
   padding-inline: 1rem;
   display: flex;
@@ -184,30 +180,39 @@ button {
   width: calc(100% - 25px);
 }
 
-.panelsRow {
+.prow {
   display: flex;
   flex-direction: row;
   gap: 0.5rem;
   flex-wrap: wrap;
   margin-block: 1rem;
+  width: 100%;
+  height: 10rem;
 }
 
-.panel {
+.p {
   border: 2px solid var(--guideLines);
-  max-width: 50%;
+  max-width: 25%;
   width: auto;
+  max-height: 10rem;
+  height: auto;
   position: relative;
   display: flex;
   flex-direction: column;
   padding: 5px 10px;
+  gap: 0.5rem;
   overflow: visible;
   white-space: normal;
   word-break: break-all;
   overflow-wrap: anywhere;
-  gap: 0.5rem;
 }
 
-.panel h4 {
+.p-extended {
+  max-width: 40%;
+  min-width: 22rem;
+}
+
+.p h4 {
   position: relative;
   margin: 0;
   display: flex;
@@ -216,11 +221,62 @@ button {
   padding: 0.2rem;
 }
 
-.panel ul {
+.p ul {
   list-style: none;
   padding: 0;
   margin: 0;
   text-align: left;
+}
+
+.sbc-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  width: fit-content;
+  gap: 0.1rem;
+}
+
+.sbc-bar {
+  position: relative;
+  width: 100%;
+  height: 3rem;
+  display: flex;
+  flex-direction: row;
+  gap: 0.1rem;
+  margin-block: 0.1rem;
+}
+
+.sbc-l-c {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem 0;
+}
+
+.sbc-l-el {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding-left: 1rem;
+}
+
+.sbc-l-el::before {
+  position: absolute;
+  left: 0;
+  content: "";
+  width: 0.8rem;
+  height: 0.8rem;
+  background-color: var(--sbcLegendDot, none);
+}
+
+.other-exts {
+  position: relative;
+  overflow-y: scroll;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
 }
 
 footer a {

@@ -1,35 +1,39 @@
 const nodeMap = new Map(nodeList.map((node) => [node.Id, node]));
-const parentsWithChildren = new Set(nodeList.map((node) => node.ParentId));
 function initTree() {
   const rootNode = nodeMap.get(0);
   document.getElementById("treeContainer").innerHTML = createHeader(rootNode);
 }
+function createIdleHeader(node, message) {
+  return `
+        <button class="h" id="node-${node.Id}" data-state="empty" style='cursor:default' aria-label='Empty Folder: ${node.Name}'>
+          ${noIcons ? "" : `<span class="ico">${ICONS["folder_closed"]}</span>`}
+          ${node.Name}
+          <span class='ind' style='opacity:0.5'>(${message})</span>
+        </button>
+    `;
+}
 function createHeader(node) {
-  if (node.Type === 0) {
-    const isEmpty = !parentsWithChildren.has(node.Id);
-    if (!isEmpty) {
+  if (!node.IsFile) {
+    if (node.IsEmptyDir) {
+      return createIdleHeader(node, "Empty");
+    } else if (node.IsSkipped) {
+      return createIdleHeader(node, "Skipped");
+    } else if (node.IsUnscanned) {
+      return createIdleHeader(node, "Not Scanned");
+    } else
       return `
-              <button class="h" id="node-${node.Id}" data-state="closed" onclick="handleFolderClick(${node.Id})">
-                ${noIcons ? null : `<span class="ico">${ICONS["folder_closed"]}</span>`}
+              <button class="h" id="node-${node.Id}" data-state="closed" onclick="handleFolderClick(${node.Id})" aria-label='Expand folder: ${node.Name}'>
+                ${noIcons ? "" : `<span class="ico">${ICONS["folder_closed"]}</span>`}
                 ${node.Name}
                 <span class='ind'>[+]</span>
               </button>
             `;
-    } else {
-      return `
-              <button class="h" id="node-${node.Id}" data-state="empty" style='cursor:default'>
-                ${noIcons ? null : `<span class="ico">${ICONS["folder_closed"]}</span>`}
-                ${node.Name}
-                <span class='ind' style='opacity:0.5'>(Empty)</span>
-              </button>
-            `;
-    }
   } else {
     const ext = getFileExt(node.Path);
     const iconKey = EXTENSION_MAP[ext] || "default";
     return `
-            <a href="file:///${node.Path}" class="h" id="node-${node.Id}" target="_blank">
-              ${noIcons ? null : `<span class="ico">${ICONS[iconKey] || ICONS["default"]}</span>`}
+            <a href="file:///${node.Path}" class="h" id="node-${node.Id}" target="_blank" aria-label='Open File: ${node.Name}'>
+              ${noIcons ? "" : `<span class="ico">${ICONS[iconKey] || ICONS["default"]}</span>`}
               ${node.Name}
             </a>
           `;
@@ -52,11 +56,19 @@ function handleFolderClick(folderId) {
     `;
     folderBtn.insertAdjacentHTML("afterend", contents);
     folderBtn.setAttribute("data-state", "open");
+    folderBtn.setAttribute(
+      "aria-label",
+      folderBtn.getAttribute("aria-label").replace("Expand", "Collapse"),
+    );
     if (iconWrapper && !noIcons) iconWrapper.innerHTML = ICONS["folder_open"];
     if (indicator) indicator.textContent = "[-]";
   } else {
     removeChildrenFromDOM(folderId);
     folderBtn.setAttribute("data-state", "closed");
+    folderBtn.setAttribute(
+      "aria-label",
+      folderBtn.getAttribute("aria-label").replace("Collapse", "Expand"),
+    );
     if (iconWrapper && !noIcons) iconWrapper.innerHTML = ICONS["folder_closed"];
     if (indicator) indicator.textContent = "[+]";
   }

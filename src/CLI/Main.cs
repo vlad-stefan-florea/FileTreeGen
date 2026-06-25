@@ -18,7 +18,8 @@ namespace CLI
 
             // output format
             WriteMsg(
-                "Choosing HTML for bigger folders is highly recommended.\nOpening other format reports for big folders will be a lot slower.",
+                "Choosing HTML for bigger folders is highly recommended.\n"
+                    + "Opening other format reports for big folders will be a lot slower.",
                 MsgType.Warning
             );
             flags.format =

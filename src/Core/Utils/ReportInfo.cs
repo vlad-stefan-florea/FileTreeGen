@@ -38,7 +38,7 @@ namespace Core.Utils
             OutputFormat Format
         ) =>
             Path.Join(
-                Utils.Text.CleanPath(outputDir),
+                Text.CleanPath(outputDir),
                 GenerateName(targetDir)
                     + "-"
                     + Calendar.GetDateReversed()

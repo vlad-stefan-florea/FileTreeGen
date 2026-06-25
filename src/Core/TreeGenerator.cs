@@ -10,6 +10,8 @@ namespace Core
         public Metadata metadata = new();
         public Statistics stats = new();
         public Dictionary<string, int> Extensions { get; set; } = new();
+        private bool filterByWhitelist = false,
+            filterByBlacklist = false;
 
         public TreeGenerator(GenFlags genFlags)
         {
@@ -18,6 +20,8 @@ namespace Core
             DirectoryInfo info = new(metadata.dirPath);
             metadata.dirName = info.Name;
             metadata.genDateTime = Calendar.GetDate().Replace("-", "/") + " " + Calendar.GetTime();
+            filterByWhitelist = _flags.extWhitelist.Any();
+            filterByBlacklist = _flags.extBlacklist.Any();
         }
 
         public IEnumerable<Node> GenerateTree()
@@ -43,6 +47,21 @@ namespace Core
             int level
         )
         {
+            bool hasAccess = true;
+            bool folderIsEmpty = false;
+            IEnumerable<FileSystemInfo>? entries = null;
+            try
+            {
+                entries = directory.EnumerateFileSystemInfos();
+                folderIsEmpty = !entries.Any();
+            }
+            catch (UnauthorizedAccessException)
+            {
+                hasAccess = false;
+                if (!_flags.noStatistics)
+                    stats.skippedFolders++;
+            }
+
             int newId = _currentId++;
 
             // send current folder
@@ -53,92 +72,80 @@ namespace Core
                     Id = newId,
                     ParentId = parentId,
                     Name = directory.Name,
-                    Type = NodeType.Folder,
+                    IsFile = false,
+                    IsEmptyDir = folderIsEmpty,
+                    IsSkipped = !hasAccess,
+                    IsUnscanned = level == _flags.maxLevel - 1,
                     Level = level,
                 };
             }
-            if (level <= _flags.maxLevel)
-            {
-                // scan subfolders
-                IEnumerable<DirectoryInfo>? subDirs = null;
-                try
-                {
-                    subDirs = directory.EnumerateDirectories();
-                }
-                catch (UnauthorizedAccessException)
-                {
-                    // Ignore
-                    if (!_flags.noStatistics)
-                        stats.skippedFolders++;
-                }
-                if (subDirs != null)
-                    foreach (var subDir in subDirs)
-                    {
-                        if (FileSystem.IsReparsePoint(subDir.FullName))
-                        {
-                            if (!_flags.noStatistics)
-                            {
-                                Extensions[""] = Extensions.GetValueOrDefault("") + 1;
-                            }
-                            yield return new Node
-                            {
-                                Id = _currentId++,
-                                ParentId = newId,
-                                Name = (_flags.noIcons ? null : "[→] ") + subDir.Name + " (link)",
-                                Type = NodeType.File,
-                                Level = level + 1,
-                                Path = subDir.FullName,
-                            };
-                        }
-                        else
-                        {
-                            if (!_flags.noStatistics)
-                                stats.folders++;
-                            foreach (var childNode in TraverseDirectory(subDir, newId, level + 1))
-                            {
-                                yield return childNode;
-                            }
-                        }
-                    }
 
-                // send files
-                if (!_flags.dirsOnly)
+            if (!hasAccess || level >= _flags.maxLevel)
+            {
+                yield break;
+            }
+
+            // scan subfolders
+            IEnumerable<DirectoryInfo>? subDirs = entries?.OfType<DirectoryInfo>();
+            if (subDirs != null)
+                foreach (var subDir in subDirs)
                 {
-                    IEnumerable<string>? filePaths = null;
-                    try
+                    if (FileSystem.IsReparsePoint(subDir.FullName))
                     {
-                        filePaths = Directory.EnumerateFiles(directory.FullName);
+                        yield return new Node
+                        {
+                            Id = _currentId++,
+                            ParentId = newId,
+                            Name =
+                                (_flags.noIcons ? null : "[→] ") + subDir.Name + " (reparse point)",
+                            IsFile = false,
+                            Level = level + 1,
+                            Path = subDir.FullName,
+                        };
                     }
-                    catch (UnauthorizedAccessException)
+                    else
                     {
                         if (!_flags.noStatistics)
-                            stats.skippedFolders++;
-                    }
-                    if (filePaths != null)
-                        foreach (var filePath in filePaths)
+                            stats.folders++;
+                        foreach (var childNode in TraverseDirectory(subDir, newId, level + 1))
                         {
-                            if (!_flags.noStatistics)
-                            {
-                                FileInfo info = new(filePath);
-                                if (info.Exists)
-                                {
-                                    stats.totalSizeBytes += info.Length;
-                                    string ext = Path.GetExtension(filePath).ToLowerInvariant();
-                                    Extensions[ext] = Extensions.GetValueOrDefault(ext) + 1;
-                                }
-                            }
-
-                            yield return new Node
-                            {
-                                Id = _currentId++,
-                                ParentId = newId,
-                                Name = Path.GetFileName(filePath),
-                                Type = NodeType.File,
-                                Level = _flags.filesOnly ? level : level + 1,
-                                Path = filePath,
-                            };
+                            yield return childNode;
                         }
+                    }
                 }
+
+            // send files
+            if (!_flags.dirsOnly)
+            {
+                IEnumerable<FileInfo>? files = entries?.OfType<FileInfo>();
+                if (files != null)
+                    foreach (var file in files)
+                    {
+                        if (!_flags.noStatistics)
+                        {
+                            stats.totalSizeBytes += file.Length;
+                        }
+
+                        string ext = file.Extension.ToLowerInvariant();
+
+                        if (filterByWhitelist && !_flags.extWhitelist.Contains(ext)) // not whitelisted
+                            continue;
+
+                        if (filterByBlacklist && _flags.extBlacklist.Contains(ext)) // blacklisted
+                            continue;
+
+                        Extensions[ext] = Extensions.GetValueOrDefault(ext) + 1;
+                        // whitelisted OR not blacklisted OR lists were not defined
+                        yield return new Node
+                        {
+                            Id = _currentId++,
+                            ParentId = newId,
+                            Name = file.Name,
+                            IsFile = true,
+                            Level = _flags.filesOnly ? level : level + 1,
+                            Path = file.FullName,
+                        };
+                    }
             }
         }
     }

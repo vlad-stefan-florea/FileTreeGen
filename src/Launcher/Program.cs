@@ -1,6 +1,5 @@
 ﻿using Core;
 using static CLI.ColorDisplay;
-using static Core.Utils.Text;
 
 namespace Launcher
 {

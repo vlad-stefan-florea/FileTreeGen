@@ -23,14 +23,13 @@
                     prefix += "├─";
                 }
                 if (!_flags.noIcons)
-                {
-                    symbol = node.Type switch
-                    {
-                        NodeType.Folder => "[DIR]",
-                        NodeType.File => string.Empty,
-                        _ => string.Empty,
-                    };
-                }
+                    symbol = node.IsFile ? string.Empty : "[DIR]";
+                if (node.IsEmptyDir)
+                    node.Name += " (Empty)";
+                else if (node.IsSkipped)
+                    node.Name += " (Skipped)";
+                else if (node.IsUnscanned)
+                    node.Name += " (Not Scanned)";
             }
             await writer.WriteAsync($"{prefix}{symbol} {node.Name}\r\n");
         }
@@ -71,6 +70,7 @@
                 GENERATED IN: {Generator.stats.genTimespan}
                 FOLDERS: {Generator.stats.folders}
                 FILES: {Generator.Extensions.Values.Sum()}
+                UNIQUE EXTENSIONS: {Generator.Extensions.Count}
                 TOTAL SIZE: {Utils.FileSystem.ComputeSize(Generator.stats.totalSizeBytes)}
                 SKIPPED FOLDERS: {Generator.stats.skippedFolders}
                 ----------------------------------------
