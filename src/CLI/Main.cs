@@ -14,22 +14,14 @@ namespace CLI
 
             // target folder
             flags.targetDir = InputHandler.AskForDir();
-            WriteMsg($"Directory chosen: '{flags.targetDir}'", MsgType.Success);
 
             // output format
-            WriteMsg(
-                "Choosing HTML for bigger folders is highly recommended.\n"
-                    + "Opening other format reports for big folders will be a lot slower.",
-                MsgType.Warning
-            );
             flags.format =
                 (
                     InputHandler.ChoiceMenu<OutputFormat>(
                         "Please choose the number of the preferred output format"
                     )
                 ) ?? flags.format;
-
-            WriteMsg($"Format chosen: '{flags.format}'", MsgType.Success);
 
             // DEFAULT VALUES
             string userprofile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),

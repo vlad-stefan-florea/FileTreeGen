@@ -74,7 +74,10 @@ namespace Core.Writers
                     HtmlTemplates.Icons.GenSvgCollectionHtml(foundExtensions, _flags.noIcons)
                 );
                 html.Append(
-                    $"<script>const noIcons={(_flags.noIcons ? "true" : "false")};</script>"
+                    "<script>"
+                        + $"const noIcons={(_flags.noIcons ? "true" : "false")};"
+                        + $"const filesOnly={(_flags.filesOnly ? "true" : "false")};"
+                        + "</script>"
                 );
                 html.Append($"<script>");
                 html.Append(
@@ -124,6 +127,7 @@ namespace Core.Writers
                 + $"FOLDERS: {Generator.stats.folders} ;"
                 + $"SKIPPED FOLDERS: {Generator.stats.skippedFolders} ;"
                 + $"FILES: {Generator.Extensions.Values.Sum()} ;"
+                + $"SKIPPED FILES: {Generator.stats.skippedFiles} ;"
                 + $"TOTAL SIZE: {Utils.FileSystem.ComputeSize(Generator.stats.totalSizeBytes)} ;";
             html.Append(
                 $"<div class=\"p\" tabindex=\"0\" aria-label=\"{ariaLabel}\"><h4>BASIC STATISTICS</h4><ul>"

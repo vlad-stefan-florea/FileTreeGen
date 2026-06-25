@@ -30,13 +30,18 @@ namespace Core
             try
             {
                 // test if the root folder is accessible in the first place
-                var test = Directory.EnumerateDirectories(_flags.targetDir);
+                bool hasContents = Directory.EnumerateFileSystemEntries(_flags.targetDir).Any();
+                if (!hasContents)
+                    throw new CoreException(
+                        ErrorCode.Codes.RootIsEmpty,
+                        "Root directory is empty."
+                    );
                 return TraverseDirectory(new DirectoryInfo(_flags.targetDir), null, 0);
             }
             catch (UnauthorizedAccessException ex)
             {
                 throw new CoreException(ErrorCode.Codes.RootAccessDenied, ex.Message);
-                // if not, throw error and don't generate any report
+                // if not, throw an error and don't generate any report
                 // why would someone need an 'empty' report?
             }
         }
@@ -65,13 +70,13 @@ namespace Core
             int newId = _currentId++;
 
             // send current folder
-            if (!_flags.filesOnly)
+            if (!_flags.filesOnly && !(_flags.ignoreEmptyDirs && folderIsEmpty))
             {
                 yield return new Node
                 {
                     Id = newId,
                     ParentId = parentId,
-                    Name = directory.Name,
+                    Name = _flags.useFullPaths ? directory.FullName : directory.Name,
                     IsFile = false,
                     IsEmptyDir = folderIsEmpty,
                     IsSkipped = !hasAccess,
@@ -92,6 +97,10 @@ namespace Core
                 {
                     if (FileSystem.IsReparsePoint(subDir.FullName))
                     {
+                        if (!_flags.noStatistics)
+                            stats.skippedFolders++;
+                        if (_flags.filesOnly)
+                            continue;
                         yield return new Node
                         {
                             Id = _currentId++,
@@ -99,8 +108,8 @@ namespace Core
                             Name =
                                 (_flags.noIcons ? null : "[→] ") + subDir.Name + " (reparse point)",
                             IsFile = false,
+                            IsSkipped = true,
                             Level = level + 1,
-                            Path = subDir.FullName,
                         };
                     }
                     else
@@ -119,33 +128,43 @@ namespace Core
             {
                 IEnumerable<FileInfo>? files = entries?.OfType<FileInfo>();
                 if (files != null)
+                {
                     foreach (var file in files)
                     {
+                        bool skipped = false;
+                        if (
+                            filterByWhitelist
+                            && !_flags.extWhitelist.Contains(file.Extension.ToLowerInvariant())
+                        )
+                            skipped = true;
+                        if (
+                            filterByBlacklist
+                            && !_flags.extBlacklist.Contains(file.Extension.ToLowerInvariant())
+                        )
+                            skipped = true;
                         if (!_flags.noStatistics)
                         {
-                            stats.totalSizeBytes += file.Length;
+                            if (skipped)
+                                stats.skippedFiles++;
+                            else
+                                stats.totalSizeBytes += file.Length;
                         }
+                        if (skipped)
+                            continue;
 
                         string ext = file.Extension.ToLowerInvariant();
-
-                        if (filterByWhitelist && !_flags.extWhitelist.Contains(ext)) // not whitelisted
-                            continue;
-
-                        if (filterByBlacklist && _flags.extBlacklist.Contains(ext)) // blacklisted
-                            continue;
-
                         Extensions[ext] = Extensions.GetValueOrDefault(ext) + 1;
-                        // whitelisted OR not blacklisted OR lists were not defined
                         yield return new Node
                         {
                             Id = _currentId++,
-                            ParentId = newId,
-                            Name = file.Name,
+                            ParentId = _flags.filesOnly ? 0 : newId,
+                            Name = _flags.useFullPaths ? file.FullName : file.Name,
                             IsFile = true,
-                            Level = _flags.filesOnly ? level : level + 1,
+                            Level = _flags.filesOnly ? 0 : level + 1,
                             Path = file.FullName,
                         };
                     }
+                }
             }
         }
     }

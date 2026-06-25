@@ -62,10 +62,11 @@
                 ### STATISTICS
                 - **GENERATED IN:**: {Generator.stats.genTimespan}
                 - **FOLDERS:**: {Generator.stats.folders}
+                - **SKIPPED FOLDERS:**: {Generator.stats.skippedFolders}
                 - **FILES**: {Generator.Extensions.Values.Sum()}
+                - **SKIPPED FILES**: {Generator.stats.skippedFiles}
                 - **UNIQUE EXTENSIONS:** {Generator.Extensions.Count}
                 - **TOTAL SIZE:**: {Utils.FileSystem.ComputeSize(Generator.stats.totalSizeBytes)}
-                - **SKIPPED FOLDERS:**: {Generator.stats.skippedFolders}
                 ---
                 """ + "\n";
     }

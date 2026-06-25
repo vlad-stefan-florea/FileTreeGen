@@ -1,6 +1,4 @@
-﻿using System.Collections.Specialized;
-using System.Runtime.CompilerServices;
-using static CLI.ColorDisplay;
+﻿using static CLI.ColorDisplay;
 using static Core.Utils.Text;
 
 namespace CLI
@@ -30,7 +28,13 @@ namespace CLI
                     WriteMsg($"The folder does not exist: {dir}", MsgType.Error);
                     dir = string.Empty;
                 }
+                else if (!Directory.EnumerateFileSystemEntries(dir).Any())
+                {
+                    WriteMsg($"The folder cannot be empty: {dir}", MsgType.Error);
+                    dir = string.Empty;
+                }
             }
+            WriteMsg($"Directory chosen: '{dir}'", MsgType.Success);
             return CleanPath(dir);
         }
 
@@ -82,7 +86,13 @@ namespace CLI
                     if (n >= min && n <= max)
                         return n;
                     else
+                    {
+                        WriteMsg(
+                            $"Please enter a value between {min} and {max} (including both)",
+                            MsgType.Info
+                        );
                         continue;
+                    }
                 }
                 else
                     continue;
@@ -110,7 +120,7 @@ namespace CLI
                 {
                     WriteMsg("Operation canceled", MsgType.Warning);
                     WriteMsg("Use '--clear' to clear the list", MsgType.Info);
-                    continue;
+                    return currentExtensions;
                 }
                 else
                 {
@@ -125,18 +135,28 @@ namespace CLI
                     else
                     {
                         WriteMsg(
-                            "Please write the extensions as in the following examples:\n"
-                                + "\t- For simple extensions: .txt;.docx;.html;.exe"
-                                + "\t- For no/empty extensions, use '\"\"' OR 'none'"
-                                + "\t- The separator characters can be either ';' or ','"
-                                + "\t- Extensions starting with '.' is optional"
-                                + "\t- Use '--clear' to clear the list",
+                            "Please write the extensions as in the following examples:"
+                                + "\n\t- For simple extensions: .txt;.docx;.html;.exe"
+                                + "\n\t- For no/empty extensions, use '\"\"' OR 'none'"
+                                + "\n\t- The separator characters can be either ';' or ','"
+                                + "\n\t- Extensions starting with '.' is optional"
+                                + "\n\t- Use '--clear' to clear the list",
                             MsgType.Info
                         );
-                        continue;
                     }
                 }
             }
+        }
+
+        public static bool AskForSwitch(string prompt, bool currentValue)
+        {
+            WriteMsg("Current value: " + currentValue, MsgType.Info);
+            if (AskYN(prompt))
+                currentValue = true;
+            else
+                currentValue = false;
+            WriteMsg("Updated value: " + currentValue, MsgType.Success);
+            return currentValue;
         }
 
         /// <summary>
@@ -145,7 +165,7 @@ namespace CLI
         /// <param name="T">The Enum containing all the available options.</typeparam>
         /// <param name="prompt">The prompt to be displayed.</param>
         /// <returns>Returns the chosen Enum entry.</returns>
-        public static T? ChoiceMenu<T>(string prompt, T? cancelValue = null)
+        public static T? ChoiceMenu<T>(string prompt)
             where T : struct, Enum
         {
             int counter = 0;
@@ -168,6 +188,10 @@ namespace CLI
 
                 if (int.TryParse(ans, out int choice) && choice >= 0 && choice < values.Length)
                 {
+                    WriteMsg(
+                        $"Option chosen: '{values[choice].ToString().Replace("_", " ")}'",
+                        MsgType.Success
+                    );
                     return values[choice];
                 }
                 else if (string.Equals(ans, "q", StringComparison.OrdinalIgnoreCase))

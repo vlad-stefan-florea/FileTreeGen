@@ -277,6 +277,7 @@ button {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0.5rem;
+  padding-inline: 0.5rem;
 }
 
 footer a {

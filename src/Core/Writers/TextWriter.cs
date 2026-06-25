@@ -31,7 +31,7 @@
                 else if (node.IsUnscanned)
                     node.Name += " (Not Scanned)";
             }
-            await writer.WriteAsync($"{prefix}{symbol} {node.Name}\r\n");
+            await writer.WriteAsync($"{prefix}{symbol} {node.Name}".Trim() + "\r\n");
         }
 
         protected override async Task WriteMetadataAsync(StreamWriter writer) =>
@@ -69,10 +69,11 @@
                 ------------
                 GENERATED IN: {Generator.stats.genTimespan}
                 FOLDERS: {Generator.stats.folders}
+                SKIPPED FOLDERS: {Generator.stats.skippedFolders}
                 FILES: {Generator.Extensions.Values.Sum()}
+                SKIPPED FILES: {Generator.stats.skippedFiles}
                 UNIQUE EXTENSIONS: {Generator.Extensions.Count}
                 TOTAL SIZE: {Utils.FileSystem.ComputeSize(Generator.stats.totalSizeBytes)}
-                SKIPPED FOLDERS: {Generator.stats.skippedFolders}
                 ----------------------------------------
                 """ + "\n";
     }

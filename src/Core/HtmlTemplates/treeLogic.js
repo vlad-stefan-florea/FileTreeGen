@@ -1,5 +1,15 @@
 const nodeMap = new Map(nodeList.map((node) => [node.Id, node]));
 function initTree() {
+  if (filesOnly) {
+    const dummyRoot = {
+      Id: 0,
+      ParentId: null,
+      Name: "Files",
+      IsFile: false,
+      Level: 0,
+    };
+    nodeMap.set(dummyRoot.Id, dummyRoot);
+  }
   const rootNode = nodeMap.get(0);
   document.getElementById("treeContainer").innerHTML = createHeader(rootNode);
 }

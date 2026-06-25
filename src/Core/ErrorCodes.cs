@@ -8,8 +8,9 @@
             Unknown = 1,
 
             RootAccessDenied = 100,
-            DirectoryNotFound = 101,
-            FileNotFound = 102,
+            RootIsEmpty = 101,
+            DirectoryNotFound = 102,
+            FileNotFound = 103,
 
             CannotWriteOutput = 200,
 
@@ -25,6 +26,7 @@
                 Codes.Unknown => "An unknown error has occurred.",
 
                 Codes.RootAccessDenied => "Access to the target directory was denied.",
+                Codes.RootIsEmpty => "The target directory cannot be empty.",
 
                 Codes.FileNotFound => "The specified file could not be found.",
 

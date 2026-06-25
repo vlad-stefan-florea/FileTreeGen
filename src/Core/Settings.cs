@@ -21,18 +21,18 @@
 
         public enum AdvancedOptions
         {
-            Output_Directory,
+            Auto_Open_Report,
             Buffer_Size,
-            Extensions_Whitelist,
-            Extensions_Blacklist,
-            Max_Search_Depth,
-            Ignore_Empty_Directories,
             Directories_Only,
+            Extensions_Blacklist,
+            Extensions_Whitelist,
             Files_Only,
+            Ignore_Empty_Directories,
+            Max_Search_Depth,
             No_Statistics,
             No_Report_Formatting,
             No_Icons,
-            Auto_Open_Report,
+            Output_Directory,
         }
 
         public enum Privileges
