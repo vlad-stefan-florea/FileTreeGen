@@ -234,7 +234,7 @@ namespace Core.Writers
             int c = 1;
             foreach (var extPair in extDescending)
                 html.Append(
-                    $"<span>{c++}) <b>{extPair.Key}</b> ({((double)extPair.Value / total * 100).ToString("0.##")}%)</span>"
+                    $"<span>{c++}) <b>{(string.IsNullOrEmpty(extPair.Key) ? "UNKNOWN" : extPair.Key)}</b> ({((double)extPair.Value / total * 100).ToString("0.##")}%)</span>"
                 );
 
             html.Append("</div></div>");
