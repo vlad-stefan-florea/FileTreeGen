@@ -8,43 +8,45 @@ namespace Launcher
         static async Task Main(string[] args)
         {
             Console.OutputEncoding = System.Text.Encoding.UTF8;
-
-            if (args.Length == 0)
+            CoreException? _ex = null;
+            try
             {
-                CoreException? _ex = null;
-                try
+                if (args.Length == 0)
                 {
                     await CLI.Main.Run();
                 }
-                catch (CoreException ex)
+                else
                 {
-                    _ex = ex;
-                }
-                catch (Exception newEx)
-                {
-                    _ex = ErrorCode.TranslateOSException(newEx);
-                }
-                finally
-                {
-                    if (_ex != null)
-                    {
-                        WriteMsg(
-                            $"[{(int)_ex.Code}]: {ErrorCode.GetErrorMessage(_ex.Code)}",
-                            MsgType.Error
-                        );
-                        WriteMsg($"[MESSAGE]: {_ex.Message}", MsgType.Info);
-                    }
-                    else
-                    {
-                        _ex = new(ErrorCode.Codes.Success, "REPORT GENERATED SUCCESSFULY");
-                    }
-                    WaitForInput();
-                    Environment.Exit((int)_ex.Code);
+                    WriteMsg("This feature is currently in development 🛠️", MsgType.Warning);
+                    //await Silent.Main.ParseAndRun(args);
                 }
             }
-            else
+            catch (CoreException ex)
             {
-                WriteMsg("'SILENT' IS IN DEVELOPMENT", MsgType.Warning);
+                _ex = ex;
+            }
+            catch (Exception newEx)
+            {
+                _ex = ErrorCode.TranslateOSException(newEx);
+            }
+            finally
+            {
+                if (_ex != null)
+                {
+                    WriteMsg(
+                        $"[{(int)_ex.Code}]: {ErrorCode.GetErrorMessage(_ex.Code)}",
+                        MsgType.Error
+                    );
+                    if (_ex.Message != null)
+                        WriteMsg($"[MESSAGE]: {_ex.Message}", MsgType.Info);
+                }
+                else
+                {
+                    _ex = new(ErrorCode.Codes.Success, "REPORT GENERATED SUCCESSFULY");
+                }
+                if (args.Length == 0)
+                    WaitForInput();
+                Environment.Exit((int)_ex.Code);
             }
         }
     }

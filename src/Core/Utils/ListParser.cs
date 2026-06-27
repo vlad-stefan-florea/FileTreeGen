@@ -1,6 +1,6 @@
 ﻿namespace Core.Utils
 {
-    public class ConsoleParser
+    public class ListParser
     {
         private static char[] validSeparators = new[] { ',', ';' };
 

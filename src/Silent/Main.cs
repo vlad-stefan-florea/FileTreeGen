@@ -1,4 +1,7 @@
 ﻿namespace Silent
 {
-    public class Main { }
+    public static class Main
+    {
+        public static async Task ParseAndRun(string[] args) { }
+    }
 }

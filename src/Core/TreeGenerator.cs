@@ -34,7 +34,7 @@ namespace Core
                 if (!hasContents)
                     throw new CoreException(
                         ErrorCode.Codes.RootIsEmpty,
-                        "Root directory is empty."
+                        $"The target directory ({_flags.targetDir}) was found empty when attempted to generate the report."
                     );
                 return TraverseDirectory(new DirectoryInfo(_flags.targetDir), null, 0);
             }

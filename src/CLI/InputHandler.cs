@@ -47,7 +47,7 @@ namespace CLI
         {
             string? ans = string.Empty;
             WriteMsg($"{prompt}\n[Y/N]", MsgType.Request);
-            ans = Console.ReadLine().Trim().ToLower();
+            ans = Console.ReadLine()?.Trim().ToLower();
             if (ans == "y")
             {
                 Console.WriteLine("(ANS: YES)");
@@ -80,7 +80,7 @@ namespace CLI
                     WriteMsg($"{prompt} [{min}<->{max}]", MsgType.Request);
                 }
                 WriteMsg($"{prompt} [{min}<->{max}]", MsgType.Request);
-                ans = Console.ReadLine().Trim().ToLower();
+                ans = Console.ReadLine()?.Trim().ToLower();
                 if (!string.IsNullOrEmpty(ans) && int.TryParse(ans, out int n))
                 {
                     if (n >= min && n <= max)
@@ -115,7 +115,7 @@ namespace CLI
                     WriteMsg($"{prompt}", MsgType.Request);
                 }
                 WriteMsg($"{prompt}", MsgType.Request);
-                ans = Console.ReadLine().Trim().ToLower();
+                ans = Console.ReadLine()?.Trim().ToLower();
                 if (string.IsNullOrWhiteSpace(ans))
                 {
                     WriteMsg("Operation canceled", MsgType.Warning);
@@ -126,7 +126,7 @@ namespace CLI
                 {
                     if (ans.Contains("--clear"))
                         return new HashSet<string>();
-                    var result = Core.Utils.ConsoleParser.ParseExtensionList(ans);
+                    var result = Core.Utils.ListParser.ParseExtensionList(ans);
                     if (result.Any())
                     {
                         currentExtensions.UnionWith(result);
