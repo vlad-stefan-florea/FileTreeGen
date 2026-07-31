@@ -33,12 +33,15 @@ namespace Launcher
             }
             finally
             {
-                if (needsCLI && _ex != null)
+                if (_ex != null)
                 {
-                    WriteMsg(
-                        $"[{(int)_ex.Code}]: {ExitCodes.GetCodeMessage(_ex.Code)}",
-                        MsgType.Error
-                    );
+                    if (needsCLI)
+                    {
+                        WriteMsg(
+                            $"[{(int)_ex.Code}]: {ExitCodes.GetCodeMessage(_ex.Code)}",
+                            MsgType.Error
+                        );
+                    }
                 }
                 else
                 {
