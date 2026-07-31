@@ -29,9 +29,9 @@
             Files_Only,
             Ignore_Empty_Directories,
             Max_Search_Depth,
-            No_Statistics,
-            No_Report_Formatting,
-            No_Icons,
+            Include_Statistics,
+            Format_Report,
+            Include_Icons,
             Output_Directory,
         }
 

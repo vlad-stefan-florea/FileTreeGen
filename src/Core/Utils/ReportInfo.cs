@@ -28,7 +28,7 @@ namespace Core.Utils
                 OutputFormat.Text => ".txt",
                 _ => throw new ArgumentOutOfRangeException(
                     nameof(outputType),
-                    $"Unsupported output format: {outputType}"
+                    $"Unsupported output reportType: {outputType}"
                 ),
             };
 

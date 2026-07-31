@@ -9,7 +9,7 @@
         /// <param name="txt">The foreground/text color.</param>
         /// <param name="bkg">The background color.</param>
         /// <param name="newLine">Whether to insert a new line at the end.</param>
-        static void WriteColor(
+        public static void WriteColor(
             string content,
             ConsoleColor txt = ConsoleColor.White,
             ConsoleColor bkg = ConsoleColor.Black,
@@ -18,7 +18,9 @@
         {
             Console.ForegroundColor = txt;
             Console.BackgroundColor = bkg;
-            Console.Write(content + (newLine ? "\n" : null));
+            Console.Write(content);
+            if (newLine)
+                Console.WriteLine();
             Console.ResetColor();
         }
 
@@ -30,6 +32,8 @@
             Request,
             Success,
             Choice,
+            Save,
+            Code,
         }
 
         /// <summary>
@@ -38,20 +42,20 @@
         /// <param name="msg">The message's content.</param>
         /// <param name="type">The message's type.</param>
         /// <param name="options">If 'type' is set to 'Choice', provide an array of options to choose from.</param>
-        public static void WriteMsg(string msg, MsgType type, string[]? options = null)
+        public static void WriteMsg(string msg, MsgType type)
         {
             switch (type)
             {
                 case MsgType.Error:
-                    WriteColor("❌ [ERROR] " + msg + "\n", ConsoleColor.Red);
+                    WriteColor("❌ [ERROR] " + msg, ConsoleColor.Red, newLine: true);
                     break;
 
                 case MsgType.Warning:
-                    WriteColor("⚠️ [WARNING] " + msg + "\n", ConsoleColor.Yellow);
+                    WriteColor("⚠️ [WARNING] " + msg, ConsoleColor.Yellow, newLine: true);
                     break;
 
                 case MsgType.Info:
-                    WriteColor("ℹ️ [INFO] " + msg + "\n", ConsoleColor.Blue);
+                    WriteColor("ℹ️ [INFO] " + msg, ConsoleColor.DarkBlue, newLine: true);
                     break;
 
                 case MsgType.Request:
@@ -59,41 +63,21 @@
                     break;
 
                 case MsgType.Success:
-                    WriteColor("✅ [SUCCESS] " + msg + "\n", ConsoleColor.Green);
+                    WriteColor("✅ [SUCCESS] " + msg, ConsoleColor.Green, newLine: true);
                     break;
 
                 case MsgType.Choice:
-                    WriteColor("💬 " + msg + ": ", ConsoleColor.Cyan);
-
-                    if (options == null || options.Length == 0)
-                    {
-                        WriteMsg("There are no options available", MsgType.Error);
-                        break;
-                    }
-
-                    int marginRight =
-                        options
-                            .Aggregate("", (max, cur) => cur.Length > max.Length ? cur : max)
-                            .Length + 5;
-                    for (int k = 0; k < options.Length; k += 3)
-                    {
-                        Console.Write(
-                            $"[\x1b[32m{k}\u001b[0m] {options[k].Replace("_", " ").PadRight(marginRight)}"
-                        );
-
-                        if (k + 1 < options.Length)
-                            Console.Write(
-                                $"[\u001b[32m{k + 1}\u001b[0m] {options[k + 1].Replace("_", " ").PadRight(marginRight)}"
-                            );
-
-                        if (k + 2 < options.Length)
-                            Console.Write(
-                                $"[\u001b[32m{k + 2}\u001b[0m] {options[k + 2].Replace("_", " ")}"
-                            );
-
-                        Console.WriteLine();
-                    }
+                    WriteColor("💬 " + msg, ConsoleColor.Cyan);
                     break;
+
+                case MsgType.Save:
+                    WriteColor("💾 [SAVE] " + msg, ConsoleColor.Blue, newLine: true);
+                    break;
+
+                case MsgType.Code:
+                    WriteColor("🔢 [CODE] " + msg, ConsoleColor.Magenta, newLine: true);
+                    break;
+
                 default:
                     break;
             }

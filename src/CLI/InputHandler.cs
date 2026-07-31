@@ -5,6 +5,7 @@ namespace CLI
 {
     public class InputHandler
     {
+        private const int waitTimeMs = 1500;
         private static int AttemptLimit = 10;
 
         public static string AskForDir()
@@ -34,7 +35,7 @@ namespace CLI
                     dir = string.Empty;
                 }
             }
-            WriteMsg($"Directory chosen: '{dir}'", MsgType.Success);
+            WriteMsg($"Directory chosen: '{dir}'", MsgType.Save);
             return CleanPath(dir);
         }
 
@@ -42,26 +43,72 @@ namespace CLI
         /// Displays a YES/NO prompt.
         /// </summary>
         /// <param name="prompt">The prompt to be displayed.</param>
+        /// <param name="defaultValue">The default value for the prompt.</param>
         /// <returns>A bool based on the answer (true for YES; false for NO).</returns>
-        public static bool AskYN(string prompt)
+        public static bool AskYN(string prompt, bool defaultValue)
         {
             string? ans = string.Empty;
-            WriteMsg($"{prompt}\n[Y/N]", MsgType.Request);
-            ans = Console.ReadLine()?.Trim().ToLower();
-            if (ans == "y")
+            string[] options = { "YES", "NO" };
+            int maxId = options.Length - 1,
+                selectedId = 0;
+            bool selected = false;
+            Thread.Sleep(waitTimeMs);
+            while (!selected)
             {
-                Console.WriteLine("(ANS: YES)");
-                return true;
+                Console.Clear();
+                WriteMsg(prompt, MsgType.Choice);
+                WriteMsg(
+                    "↑/↓ or 'y'/'n' Navigate | 'Enter' Select | 'Esc'/'Backspace' Cancel",
+                    MsgType.Info
+                );
+                for (int i = 0; i <= maxId; i++)
+                {
+                    if (i == selectedId)
+                        WriteColor("> " + options[i], ConsoleColor.Black, ConsoleColor.White);
+                    else
+                        Console.WriteLine("  " + options[i]);
+                }
+                ConsoleKey key = Console.ReadKey(true).Key;
+                switch (key)
+                {
+                    case ConsoleKey.Backspace:
+                        return defaultValue;
+                    case ConsoleKey.Escape:
+                        return defaultValue;
+                    case ConsoleKey.Enter:
+                        selected = true;
+                        break;
+                    case ConsoleKey.UpArrow:
+                        if (selectedId > 0)
+                            selectedId--;
+                        else
+                            selectedId = maxId;
+                        break;
+                    case ConsoleKey.DownArrow:
+                        if (selectedId < maxId)
+                            selectedId++;
+                        else
+                            selectedId = 0;
+                        break;
+                    case ConsoleKey.Y:
+                        selectedId = 0;
+                        selected = true;
+                        break;
+                    case ConsoleKey.N:
+                        selectedId = 1;
+                        selected = true;
+                        break;
+
+                    default:
+                        break;
+                }
             }
-            else
-            {
-                Console.WriteLine("(ANS: NO)");
-                return false;
-            }
+            WriteMsg("Selected: " + (selectedId == 0 ? "YES" : "NO"), MsgType.Save);
+            return selectedId == 0 ? true : false; // YES -> true | NO -> false
         }
 
         /// <summary>
-        /// Asks for an integer value between the 'min' and 'max' provied values.
+        /// Asks for an integer value between the 'min' and 'max' provided values.
         /// </summary>
         /// <param name="prompt">The prompt to be displayed.</param>
         /// <param name="min">The minimum value.</param>
@@ -151,11 +198,11 @@ namespace CLI
         public static bool AskForSwitch(string prompt, bool currentValue)
         {
             WriteMsg("Current value: " + currentValue, MsgType.Info);
-            if (AskYN(prompt))
+            if (AskYN(prompt, currentValue))
                 currentValue = true;
             else
                 currentValue = false;
-            WriteMsg("Updated value: " + currentValue, MsgType.Success);
+            WriteMsg("Updated value: " + currentValue, MsgType.Save);
             return currentValue;
         }
 
@@ -168,35 +215,62 @@ namespace CLI
         public static T? ChoiceMenu<T>(string prompt)
             where T : struct, Enum
         {
-            int counter = 0;
             string[] options = Enum.GetNames(typeof(T));
+            for (int i = 0; i < options.Length; i++)
+                options[i] = options[i].Replace("_", " ");
+
             T[] values = Enum.GetValues<T>();
 
-            WriteMsg(prompt + " ('q' to quit)", MsgType.Choice, options);
+            int maxId = options.Length - 1,
+                selectedId = 0;
+            bool selected = false;
 
-            while (true)
+            Thread.Sleep(waitTimeMs);
+            while (!selected)
             {
-                counter++;
-                if (counter % AttemptLimit == 0)
+                Console.Clear();
+                WriteMsg(prompt, MsgType.Choice);
+                WriteMsg("↑/↓ Navigate | 'Enter' Select | 'Esc'/'Backspace' Cancel", MsgType.Info);
+
+                for (int i = 0; i <= maxId; i++)
                 {
-                    Console.Clear();
-                    WriteMsg(prompt + " ('q' to quit)", MsgType.Choice, options);
+                    if (i == selectedId)
+                        WriteColor($"> {i}. {options[i]}", ConsoleColor.Black, ConsoleColor.White);
+                    else
+                        Console.WriteLine($"  {i}. " + options[i]);
                 }
 
-                WriteMsg("Choice", MsgType.Request);
-                string? ans = Console.ReadLine();
-
-                if (int.TryParse(ans, out int choice) && choice >= 0 && choice < values.Length)
+                ConsoleKey key = Console.ReadKey(true).Key;
+                switch (key)
                 {
-                    WriteMsg(
-                        $"Option chosen: '{values[choice].ToString().Replace("_", " ")}'",
-                        MsgType.Success
-                    );
-                    return values[choice];
+                    case ConsoleKey.Backspace:
+                        return null;
+                    case ConsoleKey.Escape:
+                        return null;
+                    case ConsoleKey.Enter:
+                        selected = true;
+                        break;
+                    case ConsoleKey.UpArrow:
+                        if (selectedId > 0)
+                            selectedId--;
+                        else
+                            selectedId = maxId;
+                        break;
+                    case ConsoleKey.DownArrow:
+                        if (selectedId < maxId)
+                            selectedId++;
+                        else
+                            selectedId = 0;
+                        break;
+                    default:
+                        break;
                 }
-                else if (string.Equals(ans, "q", StringComparison.OrdinalIgnoreCase))
-                    return null;
             }
+            WriteMsg(
+                $"Selected: '{values[selectedId].ToString().Replace("_", " ")}'",
+                MsgType.Save
+            );
+            return values[selectedId];
         }
     }
 }

@@ -33,14 +33,14 @@ namespace Core
                 bool hasContents = Directory.EnumerateFileSystemEntries(_flags.targetDir).Any();
                 if (!hasContents)
                     throw new CoreException(
-                        ErrorCode.Codes.RootIsEmpty,
+                        ExitCodes.RootIsEmpty,
                         $"The target directory ({_flags.targetDir}) was found empty when attempted to generate the report."
                     );
                 return TraverseDirectory(new DirectoryInfo(_flags.targetDir), null, 0);
             }
             catch (UnauthorizedAccessException ex)
             {
-                throw new CoreException(ErrorCode.Codes.RootAccessDenied, ex.Message);
+                throw new CoreException(ExitCodes.RootAccessDenied, ex.Message);
                 // if not, throw an error and don't generate any report
                 // why would someone need an 'empty' report?
             }
@@ -63,7 +63,7 @@ namespace Core
             catch (UnauthorizedAccessException)
             {
                 hasAccess = false;
-                if (!_flags.noStatistics)
+                if (_flags.includeStatistics)
                     stats.skippedFolders++;
             }
 
@@ -97,7 +97,7 @@ namespace Core
                 {
                     if (FileSystem.IsReparsePoint(subDir.FullName))
                     {
-                        if (!_flags.noStatistics)
+                        if (_flags.includeStatistics)
                             stats.skippedFolders++;
                         if (_flags.filesOnly)
                             continue;
@@ -106,7 +106,9 @@ namespace Core
                             Id = _currentId++,
                             ParentId = newId,
                             Name =
-                                (_flags.noIcons ? null : "[→] ") + subDir.Name + " (reparse point)",
+                                (!_flags.includeIcons ? null : "[→] ")
+                                + subDir.Name
+                                + " (reparse point)",
                             IsFile = false,
                             IsSkipped = true,
                             Level = level + 1,
@@ -114,7 +116,7 @@ namespace Core
                     }
                     else
                     {
-                        if (!_flags.noStatistics)
+                        if (_flags.includeStatistics)
                             stats.folders++;
                         foreach (var childNode in TraverseDirectory(subDir, newId, level + 1))
                         {
@@ -142,7 +144,7 @@ namespace Core
                             && !_flags.extBlacklist.Contains(file.Extension.ToLowerInvariant())
                         )
                             skipped = true;
-                        if (!_flags.noStatistics)
+                        if (_flags.includeStatistics)
                         {
                             if (skipped)
                                 stats.skippedFiles++;

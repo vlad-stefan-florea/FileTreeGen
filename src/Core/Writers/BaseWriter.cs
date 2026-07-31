@@ -24,7 +24,7 @@ namespace Core.Writers
         {
             string finalPath = _flags.outPath;
             string tempPath =
-                (_flags.noStatistics || _flags.treeOnly) ? finalPath : Path.GetTempFileName();
+                (!_flags.includeStatistics || _flags.treeOnly) ? finalPath : Path.GetTempFileName();
             // ^ if no statistics should be generated:
             // - change the temp path into the final one here (not in the file stream):
             // - write directly into the final file
@@ -33,7 +33,7 @@ namespace Core.Writers
 
             //writing the tree (temp file)
             Stopwatch sw = new();
-            if (!_flags.noStatistics)
+            if (_flags.includeStatistics)
                 sw.Start(); // it will start/stop only if 'noStatistics' is set to false (when generating them)
             try
             {
@@ -57,7 +57,7 @@ namespace Core.Writers
                         )
                     )
                     {
-                        if (_flags.noStatistics && !_flags.treeOnly)
+                        if (!_flags.includeStatistics && !_flags.treeOnly)
                         {
                             await WriteHeaderAsync(tempWriter);
                             await WriteMetadataAsync(tempWriter);
@@ -80,15 +80,15 @@ namespace Core.Writers
             }
             catch (UnauthorizedAccessException ex)
             {
-                throw new CoreException(ErrorCode.Codes.CannotWriteOutput, ex.Message);
+                throw new CoreException(ExitCodes.CannotWriteOutput, ex.Message);
             }
             catch (IOException ex)
             {
-                throw new CoreException(ErrorCode.Codes.CannotWriteOutput, ex.Message);
+                throw new CoreException(ExitCodes.CannotWriteOutput, ex.Message);
             }
 
             // write the statistics (OPTIONAL)
-            if (!_flags.noStatistics && !_flags.treeOnly)
+            if (_flags.includeStatistics && !_flags.treeOnly)
             {
                 try
                 {
@@ -117,7 +117,7 @@ namespace Core.Writers
                         {
                             await WriteHeaderAsync(finalWriter);
                             await WriteMetadataAsync(finalWriter);
-                            if (!_flags.noStatistics)
+                            if (_flags.includeStatistics)
                                 await WriteStatisticsAsync(finalWriter);
                             await finalWriter.FlushAsync();
                         }
@@ -155,11 +155,11 @@ namespace Core.Writers
                 }
                 catch (UnauthorizedAccessException ex)
                 {
-                    throw new CoreException(ErrorCode.Codes.CannotWriteOutput, ex.Message);
+                    throw new CoreException(ExitCodes.CannotWriteOutput, ex.Message);
                 }
                 catch (IOException ex)
                 {
-                    throw new CoreException(ErrorCode.Codes.CannotWriteOutput, ex.Message);
+                    throw new CoreException(ExitCodes.CannotWriteOutput, ex.Message);
                 }
             }
         }

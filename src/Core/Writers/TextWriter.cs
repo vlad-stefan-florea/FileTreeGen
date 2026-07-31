@@ -14,7 +14,7 @@
         {
             string? prefix = string.Empty,
                 symbol = string.Empty;
-            if (!_flags.noFormatting)
+            if (_flags.formatReport)
             {
                 if (node.Level > 0)
                 {
@@ -22,7 +22,7 @@
                         prefix += "│ ";
                     prefix += "├─";
                 }
-                if (!_flags.noIcons)
+                if (_flags.includeIcons)
                     symbol = node.IsFile ? string.Empty : "[DIR]";
                 if (node.IsEmptyDir)
                     node.Name += " (Empty)";

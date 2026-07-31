@@ -71,11 +71,11 @@ namespace Core.Writers
                 StringBuilder html = new();
 
                 html.Append(
-                    HtmlTemplates.Icons.GenSvgCollectionHtml(foundExtensions, _flags.noIcons)
+                    HtmlTemplates.Icons.GenSvgCollectionHtml(foundExtensions, !_flags.includeIcons)
                 );
                 html.Append(
                     "<script>"
-                        + $"const noIcons={(_flags.noIcons ? "true" : "false")};"
+                        + $"const noIcons={(!_flags.includeIcons ? "true" : "false")};"
                         + $"const filesOnly={(_flags.filesOnly ? "true" : "false")};"
                         + "</script>"
                 );
@@ -113,7 +113,7 @@ namespace Core.Writers
             html.Append($"<li><b>ACCESS LEVEL:</b> {Generator.metadata.accessLevel}</li>");
             html.Append($"<li><b>GENERATED AT:</b> {Generator.metadata.genDateTime}</li>");
             html.Append("</ul></div>");
-            if (_flags.noStatistics)
+            if (!_flags.includeStatistics)
                 html.Append(HtmlStruct.RemainingBody());
             return html.ToString().Replace("\n", "").Replace("\r", "");
         }

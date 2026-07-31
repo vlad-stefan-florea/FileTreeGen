@@ -14,11 +14,11 @@
         {
             string prefix = string.Empty,
                 symbol = string.Empty;
-            if (!_flags.noFormatting)
+            if (_flags.formatReport)
             {
                 if (node.Level > 0)
                     prefix = new string(' ', (node.Level - 1) * 2) + "- ";
-                if (!_flags.noIcons)
+                if (_flags.includeIcons)
                     symbol = node.IsFile ? "📄 " : "📁 ";
                 if (node.IsEmptyDir)
                     node.Name += " (Empty)";

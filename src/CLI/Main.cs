@@ -7,8 +7,21 @@ namespace CLI
 {
     public class Main
     {
+        private static string Title = """
+                _______ __   ______               ______         
+               / ____(_) /__/_  __/_______  ___  / ____/__  ____ 
+              / /_  / / / _ \/ / / ___/ _ \/ _ \/ / __/ _ \/ __ \
+             / __/ / / /  __/ / / /  /  __/  __/ /_/ /  __/ / / /
+            /_/   /_/_/\___/_/ /_/   \___/\___/\____/\___/_/ /_/ 
+            """;
+
+        private static string AppHeaderInfo =
+            "Version: " + AppInfo.Version + "\nDeveloped by: " + AppInfo.Developer;
+
         public static async Task Run()
         {
+            WriteColor(Title, ConsoleColor.Green);
+            WriteColor(AppHeaderInfo, ConsoleColor.White);
             // GenFlags
             GenFlags flags = new GenFlags();
 
@@ -16,12 +29,9 @@ namespace CLI
             flags.targetDir = InputHandler.AskForDir();
 
             // output format
-            flags.format =
-                (
-                    InputHandler.ChoiceMenu<OutputFormat>(
-                        "Please choose the number of the preferred output format"
-                    )
-                ) ?? flags.format;
+            flags.reportType =
+                (InputHandler.ChoiceMenu<OutputFormat>("Please choose the report's type:"))
+                ?? flags.reportType;
 
             // DEFAULT VALUES
             string userprofile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
@@ -29,12 +39,12 @@ namespace CLI
                 outputPath = Core.Utils.ReportInfo.GeneratePath(
                     downloads,
                     flags.targetDir,
-                    flags.format
+                    flags.reportType
                 );
             flags.outPath = outputPath;
 
             // other settings prompt
-            bool advanced = InputHandler.AskYN("Edit advanced settings?");
+            bool advanced = InputHandler.AskYN("Edit advanced settings?", false);
             if (advanced)
             {
                 flags = AdvancedMenu.Edit(flags);
@@ -43,7 +53,7 @@ namespace CLI
             WriteMsg($"The report will be saved at: '{outputPath}'", MsgType.Info);
             WaitForInput();
 
-            switch (flags.format)
+            switch (flags.reportType)
             {
                 case OutputFormat.HTML:
                     HtmlWriter hmtlWriter = new HtmlWriter(flags);
@@ -82,7 +92,7 @@ namespace CLI
                 Core.Utils.FileSystem.OpenPath(flags.outPath);
             else
             {
-                bool ans = InputHandler.AskYN("Open report?");
+                bool ans = InputHandler.AskYN("Open report?", false);
                 if (ans)
                     Core.Utils.FileSystem.OpenPath(flags.outPath);
             }

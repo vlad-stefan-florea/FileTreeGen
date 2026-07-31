@@ -11,7 +11,6 @@ namespace CLI
             int maxPrompts = 10,
                 currentPrompt = 0;
             bool back = false;
-            Console.Clear();
             while (!back)
             {
                 currentPrompt++;
@@ -72,7 +71,7 @@ namespace CLI
                             list = "UPDATED BLACKLIST CONTENTS:";
                             foreach (string ext in oldFlags.extBlacklist)
                                 list += string.IsNullOrEmpty(ext) ? "\"\"" : $" {ext};";
-                            WriteMsg(list, MsgType.Success);
+                            WriteMsg(list, MsgType.Save);
                         }
                         break;
 
@@ -103,7 +102,7 @@ namespace CLI
                             list = "UPDATED WHITELIST CONTENTS:";
                             foreach (string ext in oldFlags.extBlacklist)
                                 list += string.IsNullOrEmpty(ext) ? "\"\"" : $" {ext};";
-                            WriteMsg(list, MsgType.Success);
+                            WriteMsg(list, MsgType.Save);
                         }
                         break;
 
@@ -129,36 +128,28 @@ namespace CLI
                         );
                         WriteMsg(
                             $"Maximum search depth was set to: '{oldFlags.maxLevel}'",
-                            MsgType.Success
+                            MsgType.Save
                         );
                         break;
 
-                    case AdvancedOptions.No_Icons:
-                        oldFlags.noIcons = InputHandler.AskForSwitch(
-                            "Exclude all icons from the generated report",
-                            oldFlags.noIcons
+                    case AdvancedOptions.Include_Icons:
+                        oldFlags.includeIcons = InputHandler.AskForSwitch(
+                            "Include icons in the generated report",
+                            oldFlags.includeIcons
                         );
                         break;
 
-                    case AdvancedOptions.No_Report_Formatting:
-                        if (oldFlags.format == Settings.OutputFormat.HTML)
-                        {
-                            WriteMsg(
-                                "The 'No Report Formatting' setting cannot be applied while the output format is set to 'HTML'",
-                                MsgType.Warning
-                            );
-                            break;
-                        }
-                        oldFlags.noFormatting = InputHandler.AskForSwitch(
-                            "Generate the report as a plain text list without formatting",
-                            oldFlags.noFormatting
+                    case AdvancedOptions.Format_Report:
+                        oldFlags.formatReport = InputHandler.AskForSwitch(
+                            "If the report should be formatted based on the output type or just a plain text list",
+                            oldFlags.formatReport
                         );
                         break;
 
-                    case AdvancedOptions.No_Statistics:
-                        oldFlags.noStatistics = InputHandler.AskForSwitch(
-                            "Disable all statistics calculations (results in faster generation)",
-                            oldFlags.noStatistics
+                    case AdvancedOptions.Include_Statistics:
+                        oldFlags.includeStatistics = InputHandler.AskForSwitch(
+                            "Include statistics in the generated report",
+                            oldFlags.includeStatistics
                         );
                         break;
 
@@ -167,7 +158,7 @@ namespace CLI
                         oldFlags.outPath = Core.Utils.ReportInfo.GeneratePath(
                             outputDir,
                             oldFlags.targetDir,
-                            oldFlags.format
+                            oldFlags.reportType
                         );
                         break;
 
