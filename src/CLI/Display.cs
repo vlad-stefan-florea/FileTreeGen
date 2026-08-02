@@ -1,6 +1,8 @@
-﻿namespace CLI
+﻿using System.Diagnostics;
+
+namespace CLI
 {
-    public class ColorDisplay
+    public class Display
     {
         /// <summary>
         /// Writes a new line in the console following the provided foreground and background colors.
@@ -33,7 +35,6 @@
             Success,
             Choice,
             Save,
-            Code,
         }
 
         /// <summary>
@@ -41,7 +42,6 @@
         /// </summary>
         /// <param name="msg">The message's content.</param>
         /// <param name="type">The message's type.</param>
-        /// <param name="options">If 'type' is set to 'Choice', provide an array of options to choose from.</param>
         public static void WriteMsg(string msg, MsgType type)
         {
             switch (type)
@@ -55,7 +55,7 @@
                     break;
 
                 case MsgType.Info:
-                    WriteColor("ℹ️ [INFO] " + msg, ConsoleColor.DarkBlue, newLine: true);
+                    WriteColor("ℹ️ [INFO] " + msg, ConsoleColor.Blue, newLine: true);
                     break;
 
                 case MsgType.Request:
@@ -71,11 +71,7 @@
                     break;
 
                 case MsgType.Save:
-                    WriteColor("💾 [SAVE] " + msg, ConsoleColor.Blue, newLine: true);
-                    break;
-
-                case MsgType.Code:
-                    WriteColor("🔢 [CODE] " + msg, ConsoleColor.Magenta, newLine: true);
+                    WriteColor("💾 [SAVE] " + msg, ConsoleColor.White, newLine: true);
                     break;
 
                 default:
@@ -87,30 +83,45 @@
         {
             int line = Console.CursorTop;
             Console.SetCursorPosition(0, line);
-            Console.WriteLine(new string(' ', Console.BufferWidth));
+            Console.Write(new string(' ', Console.BufferWidth));
             Console.SetCursorPosition(0, line);
         }
 
         /// <summary>
-        /// Plays a 'spinner' loadign animation while the given Task is running.
+        /// Plays a 'spinner' loading animation while the given Task is running.
         /// </summary>
         /// <param name="task">The Task's running instance.</param>
         /// <param name="message">The message to be displayed to the right of the spinner.</param>
         /// <param name="delayMs">The delay between spinner frame updates.</param>
-        public static void LoadingAnimation(Task task, string message, int delayMs)
+        /// <param name="showTime">Displays the elapsed time since the spinner animation has started.</param>
+        public static void LoadingAnimation(Task task, string message, int delayMs, bool showTime)
         {
             char[] frames = { '\\', '|', '/', '-' };
             int index = 0;
-            Console.Write("  " + message);
+
+            Stopwatch sw = new();
+            if (showTime)
+                sw.Start();
+
             Console.SetCursorPosition(0, Console.CursorTop);
             while (!task.IsCompleted)
             {
-                Console.Write("\r" + frames[index]);
-
+                DeleteCurrentLine();
+                Console.Write(frames[index] + " " + message);
                 index = (index + 1) % frames.Length;
+                if (showTime)
+                    Console.Write($" ({sw.Elapsed.TotalSeconds.ToString("#0.0")}s)");
                 Thread.Sleep(delayMs);
             }
             DeleteCurrentLine();
+            if (showTime)
+            {
+                WriteMsg(
+                    $"Operation finished in {sw.Elapsed.TotalSeconds.ToString("#0.0")}s",
+                    MsgType.Info
+                );
+                sw.Stop();
+            }
         }
 
         public static void WaitForInput()

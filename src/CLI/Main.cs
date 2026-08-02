@@ -1,6 +1,6 @@
 ﻿using Core;
 using Core.Writers;
-using static CLI.ColorDisplay;
+using static CLI.Display;
 using static Core.Settings;
 
 namespace CLI
@@ -16,12 +16,12 @@ namespace CLI
             """;
 
         private static string AppHeaderInfo =
-            "Version: " + AppInfo.Version + "\nDeveloped by: " + AppInfo.Developer;
+            "Version: " + AppInfo.Version + " | Developed by: " + AppInfo.Developer;
 
         public static async Task Run()
         {
             WriteColor(Title, ConsoleColor.Green);
-            WriteColor(AppHeaderInfo, ConsoleColor.White);
+            WriteColor(AppHeaderInfo, ConsoleColor.DarkGreen);
             // GenFlags
             GenFlags flags = new GenFlags();
 
@@ -58,7 +58,7 @@ namespace CLI
                 case OutputFormat.HTML:
                     HtmlWriter hmtlWriter = new HtmlWriter(flags);
                     Task hmtlWrite = hmtlWriter.WriteAsync();
-                    LoadingAnimation(hmtlWrite, "Generating report", 100);
+                    LoadingAnimation(hmtlWrite, "Generating report", 100, true);
 
                     await hmtlWrite;
                     if (hmtlWrite.IsCompletedSuccessfully)
@@ -68,7 +68,7 @@ namespace CLI
                 case OutputFormat.Markdown:
                     MarkdownWriter mdWriter = new MarkdownWriter(flags);
                     Task mdWrite = mdWriter.WriteAsync();
-                    LoadingAnimation(mdWrite, "Generating report", 100);
+                    LoadingAnimation(mdWrite, "Generating report", 100, true);
 
                     await mdWrite;
                     if (mdWrite.IsCompletedSuccessfully)
@@ -78,7 +78,7 @@ namespace CLI
                 case OutputFormat.Text:
                     Core.Writers.TextWriter txtWriter = new Core.Writers.TextWriter(flags);
                     Task txtWrite = txtWriter.WriteAsync();
-                    LoadingAnimation(txtWrite, "Generating report", 100);
+                    LoadingAnimation(txtWrite, "Generating report", 100, true);
 
                     await txtWrite;
                     if (txtWrite.IsCompletedSuccessfully)
@@ -92,7 +92,7 @@ namespace CLI
                 Core.Utils.FileSystem.OpenPath(flags.outPath);
             else
             {
-                bool ans = InputHandler.AskYN("Open report?", false);
+                bool ans = InputHandler.AskYN("Open the report?", true);
                 if (ans)
                     Core.Utils.FileSystem.OpenPath(flags.outPath);
             }

@@ -4,7 +4,7 @@
     {
         public static string CleanPath(string? path)
         {
-            if (path == null)
+            if (string.IsNullOrWhiteSpace(path))
                 return string.Empty;
             string cleaned = path.Trim().Replace("\"", "");
             if (cleaned.Length == 2 && cleaned.EndsWith(":")) // disk root reportType: "X:"
@@ -20,7 +20,9 @@
                     Path.AltDirectorySeparatorChar
                 );
             }
-            return cleaned;
+            var dir = new DirectoryInfo(Path.GetFullPath(cleaned));
+            string realPath = dir.FullName;
+            return realPath;
         }
 
         public static string CleanFileName(string fileName)

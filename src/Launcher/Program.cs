@@ -1,5 +1,5 @@
 ﻿using Core;
-using static CLI.ColorDisplay;
+using static CLI.Display;
 using static CLI.InputHandler;
 
 namespace Launcher
@@ -9,7 +9,7 @@ namespace Launcher
         static async Task Main(string[] args)
         {
             Console.OutputEncoding = System.Text.Encoding.UTF8;
-            CoreException? _ex = null;
+            CoreException _ex = new(ExitCode.Success, ExitMessages.Get(ExitCode.Success));
             bool needsCLI = args.Length == 0;
             try
             {
@@ -29,37 +29,39 @@ namespace Launcher
             }
             catch (Exception newEx)
             {
-                _ex = ExitCodes.TranslateOSException(newEx);
+                _ex = ExitMessages.TranslateOSException(newEx);
             }
             finally
             {
-                if (_ex != null)
+                if (needsCLI)
                 {
-                    if (needsCLI)
+                    if (_ex.Code != ExitCode.Success)
                     {
-                        WriteMsg(
-                            $"[{(int)_ex.Code}]: {ExitCodes.GetCodeMessage(_ex.Code)}",
-                            MsgType.Error
+                        WriteMsg($"[{_ex.Code}]: {_ex.Message}", MsgType.Error);
+                        bool errDetails = AskYN(
+                            "Do you want to see the detailed error information?",
+                            false
                         );
+                        if (errDetails)
+                        {
+                            WriteMsg("[CODE]: " + _ex.Code, MsgType.Error);
+                            WriteMsg("[DESCRIPTION]: " + _ex.Code, MsgType.Error);
+                            if (_ex.InnerException != null)
+                            {
+                                WriteMsg(
+                                    "[INNER MESSAGE]:\n" + _ex.InnerException.Message,
+                                    MsgType.Error
+                                );
+                                WriteMsg(
+                                    "[INNER STACK TRACE]:\n" + _ex.InnerException.StackTrace,
+                                    MsgType.Error
+                                );
+                            }
+                        }
                     }
+                    else { }
                 }
-                else
-                {
-                    _ex = new(ExitCodes.Success, ExitCodes.GetCodeMessage(ExitCodes.Success));
-                }
-                if (needsCLI && _ex != null && (_ex.Code != ExitCodes.Success))
-                {
-                    bool errDetails = AskYN(
-                        "Do you want to see detailed error information?",
-                        false
-                    );
-                    if (errDetails)
-                    {
-                        WriteMsg("Detailed error information:", MsgType.Warning);
-                        WriteMsg(Convert.ToString(_ex.Code), MsgType.Code);
-                        WriteMsg($"[MESSAGE]: {_ex.Message}", MsgType.Error);
-                    }
-                }
+
                 Environment.Exit((int)_ex.Code);
             }
         }

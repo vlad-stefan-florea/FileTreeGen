@@ -1,28 +1,22 @@
-﻿using static CLI.ColorDisplay;
+﻿using static CLI.Display;
 using static Core.Utils.Text;
 
 namespace CLI
 {
     public class InputHandler
     {
-        private const int waitTimeMs = 1500;
-        private static int AttemptLimit = 10;
+        private const int maxDisplayedOptions = 10;
 
         public static string AskForDir()
         {
-            int counter = 0;
             string dir = string.Empty;
 
-            while (string.IsNullOrEmpty(dir))
+            while (string.IsNullOrWhiteSpace(dir))
             {
-                counter++;
-                if (counter % AttemptLimit == 0)
-                    Console.Clear();
-
                 WriteMsg("Directory path", MsgType.Request);
                 dir = CleanPath(Console.ReadLine());
 
-                if (string.IsNullOrEmpty(dir))
+                if (string.IsNullOrWhiteSpace(dir))
                     WriteMsg($"Please drag & drop the folder or fill in its path", MsgType.Info);
                 else if (!Directory.Exists(dir))
                 {
@@ -36,7 +30,7 @@ namespace CLI
                 }
             }
             WriteMsg($"Directory chosen: '{dir}'", MsgType.Save);
-            return CleanPath(dir);
+            return dir;
         }
 
         /// <summary>
@@ -48,26 +42,31 @@ namespace CLI
         public static bool AskYN(string prompt, bool defaultValue)
         {
             string? ans = string.Empty;
-            string[] options = { "YES", "NO" };
-            int maxId = options.Length - 1,
-                selectedId = 0;
             bool selected = false;
-            Thread.Sleep(waitTimeMs);
+            int selectedId = defaultValue ? 0 : 1;
+            // YES   /   NO
+            // ^0        ^1
+            // ^true     ^false
+            WriteMsg(prompt, MsgType.Choice);
+            WriteMsg(
+                "←/→ or 'y'/'n' Navigate | 'Enter' Select | 'Esc'/'Backspace' Default",
+                MsgType.Info
+            );
+            Console.WriteLine();
+            Console.SetCursorPosition(0, Console.CursorTop - 1);
             while (!selected)
             {
-                Console.Clear();
-                WriteMsg(prompt, MsgType.Choice);
-                WriteMsg(
-                    "↑/↓ or 'y'/'n' Navigate | 'Enter' Select | 'Esc'/'Backspace' Cancel",
-                    MsgType.Info
-                );
-                for (int i = 0; i <= maxId; i++)
-                {
-                    if (i == selectedId)
-                        WriteColor("> " + options[i], ConsoleColor.Black, ConsoleColor.White);
-                    else
-                        Console.WriteLine("  " + options[i]);
-                }
+                DeleteCurrentLine();
+                if (selectedId == 0)
+                    WriteColor("[ YES ]", txt: ConsoleColor.Green, newLine: false);
+                else
+                    Console.Write(" YES ");
+                Console.Write(" / ");
+                if (selectedId == 1)
+                    WriteColor("[ NO ]", txt: ConsoleColor.Red, newLine: false);
+                else
+                    Console.Write(" NO ");
+
                 ConsoleKey key = Console.ReadKey(true).Key;
                 switch (key)
                 {
@@ -78,17 +77,17 @@ namespace CLI
                     case ConsoleKey.Enter:
                         selected = true;
                         break;
-                    case ConsoleKey.UpArrow:
-                        if (selectedId > 0)
-                            selectedId--;
-                        else
-                            selectedId = maxId;
-                        break;
-                    case ConsoleKey.DownArrow:
-                        if (selectedId < maxId)
-                            selectedId++;
+                    case ConsoleKey.LeftArrow:
+                        if (selectedId == 0)
+                            selectedId = 1;
                         else
                             selectedId = 0;
+                        break;
+                    case ConsoleKey.RightArrow:
+                        if (selectedId == 1)
+                            selectedId = 0;
+                        else
+                            selectedId = 1;
                         break;
                     case ConsoleKey.Y:
                         selectedId = 0;
@@ -103,7 +102,7 @@ namespace CLI
                         break;
                 }
             }
-            WriteMsg("Selected: " + (selectedId == 0 ? "YES" : "NO"), MsgType.Save);
+            Console.WriteLine();
             return selectedId == 0 ? true : false; // YES -> true | NO -> false
         }
 
@@ -117,15 +116,8 @@ namespace CLI
         public static int AskForInt(string prompt, int min, int max)
         {
             string? ans = string.Empty;
-            int counter = 0;
             while (true)
             {
-                counter++;
-                if (counter % AttemptLimit == 0)
-                {
-                    Console.Clear();
-                    WriteMsg($"{prompt} [{min}<->{max}]", MsgType.Request);
-                }
                 WriteMsg($"{prompt} [{min}<->{max}]", MsgType.Request);
                 ans = Console.ReadLine()?.Trim().ToLower();
                 if (!string.IsNullOrEmpty(ans) && int.TryParse(ans, out int n))
@@ -151,22 +143,27 @@ namespace CLI
             HashSet<string> currentExtensions
         )
         {
+            void DisplayHelp()
+            {
+                WriteMsg(
+                    "Please write the extensions as in the following examples:"
+                        + "\n\t- For simple extensions: .txt;.docx;.html;.exe"
+                        + "\n\t- For no/empty extensions, use '\"\"' OR 'none'"
+                        + "\n\t- The separator characters can be either ';' or ','"
+                        + "\n\t- Extensions starting with '.' is optional"
+                        + "\n\t- Use '--clear' to clear the list",
+                    MsgType.Info
+                );
+            }
             string? ans = string.Empty;
-            int counter = 0;
             while (true)
             {
-                counter++;
-                if (counter % AttemptLimit == 0)
-                {
-                    Console.Clear();
-                    WriteMsg($"{prompt}", MsgType.Request);
-                }
                 WriteMsg($"{prompt}", MsgType.Request);
                 ans = Console.ReadLine()?.Trim().ToLower();
-                if (string.IsNullOrWhiteSpace(ans))
+                if (string.IsNullOrEmpty(ans))
                 {
                     WriteMsg("Operation canceled", MsgType.Warning);
-                    WriteMsg("Use '--clear' to clear the list", MsgType.Info);
+                    DisplayHelp();
                     return currentExtensions;
                 }
                 else
@@ -181,15 +178,7 @@ namespace CLI
                     }
                     else
                     {
-                        WriteMsg(
-                            "Please write the extensions as in the following examples:"
-                                + "\n\t- For simple extensions: .txt;.docx;.html;.exe"
-                                + "\n\t- For no/empty extensions, use '\"\"' OR 'none'"
-                                + "\n\t- The separator characters can be either ';' or ','"
-                                + "\n\t- Extensions starting with '.' is optional"
-                                + "\n\t- Use '--clear' to clear the list",
-                            MsgType.Info
-                        );
+                        DisplayHelp();
                     }
                 }
             }
@@ -197,8 +186,7 @@ namespace CLI
 
         public static bool AskForSwitch(string prompt, bool currentValue)
         {
-            WriteMsg("Current value: " + currentValue, MsgType.Info);
-            if (AskYN(prompt, currentValue))
+            if (AskYN(prompt + $" (Current Value: {(currentValue ? "YES" : "NO")})", currentValue))
                 currentValue = true;
             else
                 currentValue = false;
@@ -215,30 +203,40 @@ namespace CLI
         public static T? ChoiceMenu<T>(string prompt)
             where T : struct, Enum
         {
+            // options setup & sorting
             string[] options = Enum.GetNames(typeof(T));
-            for (int i = 0; i < options.Length; i++)
-                options[i] = options[i].Replace("_", " ");
+            var values = Enum.GetValues<T>();
 
-            T[] values = Enum.GetValues<T>();
-
+            // variables
             int maxId = options.Length - 1,
-                selectedId = 0;
+                selectedId = 0,
+                availableLines = Console.WindowHeight,
+                displayedItems = Math.Min(
+                    maxDisplayedOptions,
+                    Math.Min(Console.WindowHeight, maxId + 1)
+                ),
+                firstShownId = 0,
+                menuTop;
             bool selected = false;
 
-            Thread.Sleep(waitTimeMs);
+            // small visual tweak
+            for (int i = 0; i <= maxId; i++)
+                options[i] = options[i].Replace('_', ' ');
+
+            // prompt & nav info
+            WriteMsg(prompt, MsgType.Choice);
+            WriteMsg("↑/↓ Navigate | 'Enter' Select | 'Esc'/'Backspace' Cancel", MsgType.Info);
+
+            // reserve lines
+            for (int i = 0; i < displayedItems; i++)
+                Console.WriteLine();
+            Console.SetCursorPosition(0, Console.CursorTop - displayedItems);
+            menuTop = Console.CursorTop;
+
+            // selection loop
             while (!selected)
             {
-                Console.Clear();
-                WriteMsg(prompt, MsgType.Choice);
-                WriteMsg("↑/↓ Navigate | 'Enter' Select | 'Esc'/'Backspace' Cancel", MsgType.Info);
-
-                for (int i = 0; i <= maxId; i++)
-                {
-                    if (i == selectedId)
-                        WriteColor($"> {i}. {options[i]}", ConsoleColor.Black, ConsoleColor.White);
-                    else
-                        Console.WriteLine($"  {i}. " + options[i]);
-                }
+                DrawOptions();
 
                 ConsoleKey key = Console.ReadKey(true).Key;
                 switch (key)
@@ -251,26 +249,68 @@ namespace CLI
                         selected = true;
                         break;
                     case ConsoleKey.UpArrow:
+                    {
                         if (selectedId > 0)
                             selectedId--;
                         else
                             selectedId = maxId;
                         break;
+                    }
                     case ConsoleKey.DownArrow:
+                    {
                         if (selectedId < maxId)
                             selectedId++;
                         else
                             selectedId = 0;
                         break;
+                    }
                     default:
                         break;
                 }
+                UpdateOptions();
             }
-            WriteMsg(
-                $"Selected: '{values[selectedId].ToString().Replace("_", " ")}'",
-                MsgType.Save
-            );
+
+            // return last selected value
+            WriteMsg($"Selected: '{options[selectedId]}'", MsgType.Save);
             return values[selectedId];
+
+            // helper methods
+            void DrawLine(int optionId)
+            {
+                Console.SetCursorPosition(0, Console.CursorTop);
+                Console.Write(new string(' ', Console.WindowWidth));
+                Console.SetCursorPosition(0, Console.CursorTop);
+                string option = options[optionId],
+                    counter = $"[{optionId + 1}/{maxId + 1}]";
+                int padding = Console.WindowWidth - option.Length - counter.Length - 3;
+                if (padding < 1)
+                    padding = 1;
+                string separator = optionId == selectedId
+                        ? new string('.', padding)
+                        : new string(' ', padding),
+                    text = option + separator + counter;
+                if (optionId == selectedId)
+                    WriteColor("> " + text, txt: ConsoleColor.White);
+                else
+                    WriteColor("  " + text, txt: ConsoleColor.DarkGray);
+            }
+            void DrawOptions()
+            {
+                Console.SetCursorPosition(0, menuTop);
+                for (int i = firstShownId; i < (firstShownId + displayedItems) && i <= maxId; i++)
+                    DrawLine(i);
+            }
+            void UpdateOptions()
+            {
+                if (selectedId < firstShownId)
+                {
+                    firstShownId = selectedId;
+                }
+                else if (selectedId >= firstShownId + displayedItems)
+                {
+                    firstShownId = selectedId - displayedItems + 1;
+                }
+            }
         }
     }
 }

@@ -17,7 +17,11 @@
             if (_flags.formatReport)
             {
                 if (node.Level > 0)
-                    prefix = new string(' ', (node.Level - 1) * 2) + "- ";
+                {
+                    for (int c = 0; c < node.Level - 1; c++)
+                        prefix += "│ ";
+                    prefix += "├─";
+                }
                 if (_flags.includeIcons)
                     symbol = node.IsFile ? "📄 " : "📁 ";
                 if (node.IsEmptyDir)
@@ -43,7 +47,7 @@
             await writer.WriteAsync(Footer());
 
         private string Footer() =>
-            $"\n{new string('-', 3)}\nGenerated using {AppInfo.AppName} ({AppInfo.AppUrl})";
+            $"\n```\n{new string('-', 3)}\nGenerated using [{AppInfo.AppName}]({AppInfo.AppUrl})";
 
         private string Header() => $"# \'{Generator.metadata.dirName}\' folder structure report\n";
 
@@ -55,7 +59,9 @@
                 - **ACESS LEVEL:**: {Generator.metadata.accessLevel}
                 - **GENERATED AT:**: {Generator.metadata.genDateTime}
                 ---
-                """ + "\n";
+                """
+            + "\n"
+            + (_flags.includeStatistics ? null : "```\n");
 
         private string StatsPanel() =>
             $"""
@@ -68,6 +74,6 @@
                 - **UNIQUE EXTENSIONS:** {Generator.Extensions.Count}
                 - **TOTAL SIZE:**: {Utils.FileSystem.ComputeSize(Generator.stats.totalSizeBytes)}
                 ---
-                """ + "\n";
+                """ + "\n```\n";
     }
 }

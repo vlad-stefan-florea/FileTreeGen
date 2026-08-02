@@ -136,6 +136,8 @@ namespace Core.Writers
             html.Append($"<li><b>FOLDERS:</b> {Generator.stats.folders}</li>");
             html.Append($"<li><b>SKIPPED FOLDERS:</b> {Generator.stats.skippedFolders}</li>");
             html.Append($"<li><b>FILES:</b> {Generator.Extensions.Values.Sum()}</li>");
+            html.Append($"<li><b>SKIPPED FILES:</b> {Generator.stats.skippedFiles}</li>");
+
             html.Append(
                 $"<li><b>TOTAL SIZE:</b> {Utils.FileSystem.ComputeSize(Generator.stats.totalSizeBytes)}</li>"
             );
@@ -177,10 +179,10 @@ namespace Core.Writers
             {
                 double pct = (double)top5Array[i].Value / total * 100;
                 chartDataList.Add(
-                    (string.IsNullOrEmpty(top5Array[i].Key) ? "Unknown" : top5Array[i].Key, pct)
+                    (string.IsNullOrEmpty(top5Array[i].Key) ? "???" : top5Array[i].Key, pct)
                 );
                 ariaLabel +=
-                    $" {pct:0}% {(string.IsNullOrEmpty(top5Array[i].Key) ? "Unknown" : top5Array[i].Key).Replace(".", "")} ;";
+                    $" {pct:0}% {(string.IsNullOrEmpty(top5Array[i].Key) ? "???" : top5Array[i].Key).Replace(".", "")} ;";
             }
             if (hasOthers)
             {
@@ -192,7 +194,7 @@ namespace Core.Writers
             StringBuilder html = new();
             // panel
             html.Append(
-                $"<div class=\"p p-extended\" tabindex=\"0\" aria-label=\"{ariaLabel}\"><h4>FILE TYPES DISTRIBUTION CHART</h4>"
+                $"<div class=\"p p-ext\" tabindex=\"0\" aria-label=\"{ariaLabel}\"><h4>FILE TYPES DISTRIBUTION CHART</h4>"
             );
             // bar chart
             html.Append("<div class=\"sbc-container\"><div class=\"sbc-bar\">");
@@ -224,9 +226,10 @@ namespace Core.Writers
                 );
             }
             html.Append("</div></div></div>");
+
             // all extensions list
             html.Append(
-                $"<div class=\"p p-extended\" tabindex=\"0\" aria-label=\"EXTENSIONS LIST SECTION\"><h4>EXTENSIONS LIST ({extensions.Count})</h4>"
+                $"<div class=\"p\" tabindex=\"0\" aria-label=\"EXTENSIONS LIST SECTION\"><h4>EXTENSIONS LIST ({extensions.Count})</h4>"
             );
             html.Append(
                 $"<div class=\"other-exts\" aria-label=\"EXTENSIONS COMPLETE LIST ({extensions.Count} unique extensions)\">"
@@ -234,7 +237,7 @@ namespace Core.Writers
             int c = 1;
             foreach (var extPair in extDescending)
                 html.Append(
-                    $"<span>{c++}) <b>{(string.IsNullOrEmpty(extPair.Key) ? "UNKNOWN" : extPair.Key)}</b> ({((double)extPair.Value / total * 100).ToString("0.##")}%)</span>"
+                    $"<span>{c++}) {((double)extPair.Value / total * 100).ToString("0.##")}% <b>{(string.IsNullOrEmpty(extPair.Key) ? "???" : extPair.Key)} ({extPair.Value})</b></span>"
                 );
 
             html.Append("</div></div>");

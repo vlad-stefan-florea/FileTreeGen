@@ -80,11 +80,11 @@ namespace Core.Writers
             }
             catch (UnauthorizedAccessException ex)
             {
-                throw new CoreException(ExitCodes.CannotWriteOutput, ex.Message);
+                throw new CoreException(ExitCode.CannotWriteOutput, ex.Message);
             }
             catch (IOException ex)
             {
-                throw new CoreException(ExitCodes.CannotWriteOutput, ex.Message);
+                throw new CoreException(ExitCode.CannotWriteOutput, ex.Message);
             }
 
             // write the statistics (OPTIONAL)
@@ -155,11 +155,11 @@ namespace Core.Writers
                 }
                 catch (UnauthorizedAccessException ex)
                 {
-                    throw new CoreException(ExitCodes.CannotWriteOutput, ex.Message);
+                    throw new CoreException(ExitCode.CannotWriteOutput, ex.Message);
                 }
                 catch (IOException ex)
                 {
-                    throw new CoreException(ExitCodes.CannotWriteOutput, ex.Message);
+                    throw new CoreException(ExitCode.CannotWriteOutput, ex.Message);
                 }
             }
         }

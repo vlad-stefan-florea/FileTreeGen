@@ -1,5 +1,5 @@
 ﻿using Core;
-using static CLI.ColorDisplay;
+using static CLI.Display;
 using static Core.Settings;
 
 namespace CLI
@@ -40,14 +40,29 @@ namespace CLI
                         break;
 
                     case AdvancedOptions.Directories_Only:
-                        oldFlags.dirsOnly = InputHandler.AskForSwitch(
-                            "Include ONLY FOLDERS in the generated report",
-                            oldFlags.dirsOnly
-                        );
+                        if (oldFlags.filesOnly)
+                        {
+                            WriteMsg(
+                                "Cannot activate the option 'directories only' while 'files only' is active",
+                                MsgType.Warning
+                            );
+                        }
+                        else
+                            oldFlags.dirsOnly = InputHandler.AskForSwitch(
+                                "Include ONLY FOLDERS in the generated report",
+                                oldFlags.dirsOnly
+                            );
                         break;
 
                     case AdvancedOptions.Extensions_Blacklist:
-                        if (oldFlags.extWhitelist.Any())
+                        if (oldFlags.dirsOnly)
+                        {
+                            WriteMsg(
+                                "Cannot edit the blacklist while 'directories only' is active",
+                                MsgType.Warning
+                            );
+                        }
+                        else if (oldFlags.extWhitelist.Any())
                         {
                             WriteMsg(
                                 "Cannot edit the blacklist while filtering by 'whitelist'",
@@ -70,13 +85,20 @@ namespace CLI
                             );
                             list = "UPDATED BLACKLIST CONTENTS:";
                             foreach (string ext in oldFlags.extBlacklist)
-                                list += string.IsNullOrEmpty(ext) ? "\"\"" : $" {ext};";
+                                list += string.IsNullOrEmpty(ext) ? " \"\";" : $" {ext};";
                             WriteMsg(list, MsgType.Save);
                         }
                         break;
 
                     case AdvancedOptions.Extensions_Whitelist:
-                        if (oldFlags.extBlacklist.Any())
+                        if (oldFlags.dirsOnly)
+                        {
+                            WriteMsg(
+                                "Cannot edit the whitelist while 'directories only' is active",
+                                MsgType.Warning
+                            );
+                        }
+                        else if (oldFlags.extBlacklist.Any())
                         {
                             WriteMsg(
                                 "Cannot edit the whitelist while filtering by 'blacklist'",
@@ -101,23 +123,39 @@ namespace CLI
 
                             list = "UPDATED WHITELIST CONTENTS:";
                             foreach (string ext in oldFlags.extBlacklist)
-                                list += string.IsNullOrEmpty(ext) ? "\"\"" : $" {ext};";
+                                list += string.IsNullOrEmpty(ext) ? " \"\";" : $" {ext};";
                             WriteMsg(list, MsgType.Save);
                         }
                         break;
 
                     case AdvancedOptions.Files_Only:
-                        oldFlags.filesOnly = InputHandler.AskForSwitch(
-                            "Include ONLY FILES in the generated report",
-                            oldFlags.filesOnly
-                        );
+                        if (oldFlags.filesOnly)
+                        {
+                            WriteMsg(
+                                "Cannot activate the option 'files only' while 'directories only' is active",
+                                MsgType.Warning
+                            );
+                        }
+                        else
+                            oldFlags.filesOnly = InputHandler.AskForSwitch(
+                                "Include ONLY FILES in the generated report",
+                                oldFlags.filesOnly
+                            );
                         break;
 
                     case AdvancedOptions.Ignore_Empty_Directories:
-                        oldFlags.ignoreEmptyDirs = InputHandler.AskForSwitch(
-                            "Exclude all empty folders from the report",
-                            oldFlags.ignoreEmptyDirs
-                        );
+                        if (oldFlags.filesOnly)
+                        {
+                            WriteMsg(
+                                "Cannot activate the option 'ignore empty directories' while 'files only' is active",
+                                MsgType.Warning
+                            );
+                        }
+                        else
+                            oldFlags.ignoreEmptyDirs = InputHandler.AskForSwitch(
+                                "Exclude all empty folders from the report",
+                                oldFlags.ignoreEmptyDirs
+                            );
                         break;
 
                     case AdvancedOptions.Max_Search_Depth:

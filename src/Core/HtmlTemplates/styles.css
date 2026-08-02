@@ -187,29 +187,24 @@ button {
   flex-wrap: wrap;
   margin-block: 1rem;
   width: 100%;
-  height: 10rem;
+  height: fit-content;
 }
 
 .p {
   border: 2px solid var(--guideLines);
   max-width: 25%;
   width: auto;
-  max-height: 10rem;
-  height: auto;
+  height: 12rem;
   position: relative;
   display: flex;
   flex-direction: column;
   padding: 5px 10px;
   gap: 0.5rem;
-  overflow: visible;
+  overflow-x: visible;
+  overflow-y:scroll;
   white-space: normal;
   word-break: break-all;
   overflow-wrap: anywhere;
-}
-
-.p-extended {
-  max-width: 40%;
-  min-width: 22rem;
 }
 
 .p h4 {
@@ -251,7 +246,7 @@ button {
   position: relative;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem 0;
+  gap: 0.5rem 0.5rem;
 }
 
 .sbc-l-el {
@@ -273,11 +268,8 @@ button {
 
 .other-exts {
   position: relative;
-  overflow-y: scroll;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
-  padding-inline: 0.5rem;
+  display: flex;
+  flex-direction:column;
 }
 
 footer a {

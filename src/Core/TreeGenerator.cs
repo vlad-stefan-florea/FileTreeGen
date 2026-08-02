@@ -33,14 +33,14 @@ namespace Core
                 bool hasContents = Directory.EnumerateFileSystemEntries(_flags.targetDir).Any();
                 if (!hasContents)
                     throw new CoreException(
-                        ExitCodes.RootIsEmpty,
+                        ExitCode.RootIsEmpty,
                         $"The target directory ({_flags.targetDir}) was found empty when attempted to generate the report."
                     );
                 return TraverseDirectory(new DirectoryInfo(_flags.targetDir), null, 0);
             }
             catch (UnauthorizedAccessException ex)
             {
-                throw new CoreException(ExitCodes.RootAccessDenied, ex.Message);
+                throw new CoreException(ExitCode.RootAccessDenied, ex.Message);
                 // if not, throw an error and don't generate any report
                 // why would someone need an 'empty' report?
             }
@@ -141,7 +141,7 @@ namespace Core
                             skipped = true;
                         if (
                             filterByBlacklist
-                            && !_flags.extBlacklist.Contains(file.Extension.ToLowerInvariant())
+                            && _flags.extBlacklist.Contains(file.Extension.ToLowerInvariant())
                         )
                             skipped = true;
                         if (_flags.includeStatistics)
