@@ -1,4 +1,6 @@
-﻿namespace Core.Writers
+﻿using Core.Utils;
+
+namespace Core.Writers
 {
     public sealed class TextWriter : BaseWriter
     {

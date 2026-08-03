@@ -1,4 +1,5 @@
 ﻿using Core;
+using Core.Utils;
 using static CLI.Display;
 using static Core.Settings;
 
@@ -16,7 +17,7 @@ namespace CLI
                 currentPrompt++;
                 if (currentPrompt % maxPrompts == 0)
                     Console.Clear();
-                AdvancedOptions? option = InputHandler.ChoiceMenu<AdvancedOptions>(
+                CliAdvancedOptions? option = InputHandler.ChoiceMenu<CliAdvancedOptions>(
                     "Choose an advanced option to edit"
                 );
                 if (option is null)
@@ -26,50 +27,50 @@ namespace CLI
                 }
                 switch (option)
                 {
-                    case AdvancedOptions.Auto_Open_Report:
+                    case CliAdvancedOptions.Auto_Open_Report:
                         oldFlags.autoOpenReport = InputHandler.AskForSwitch(
-                            "Automatically open the report after generation",
+                            "Automatically open the report after generation?",
                             oldFlags.autoOpenReport
                         );
                         break;
 
-                    case AdvancedOptions.Buffer_Size:
+                    case CliAdvancedOptions.Buffer_Size:
                         oldFlags.bufferSize =
-                            (InputHandler.ChoiceMenu<BufferSize>("Please choose the buffer size"))
+                            (InputHandler.ChoiceMenu<BufferSize>("Please choose the buffer size:"))
                             ?? oldFlags.bufferSize;
                         break;
 
-                    case AdvancedOptions.Directories_Only:
+                    case CliAdvancedOptions.Directories_Only:
                         if (oldFlags.filesOnly)
                         {
                             WriteMsg(
-                                "Cannot activate the option 'directories only' while 'files only' is active",
+                                "Cannot activate the option 'directories only' while 'files only' is active.",
                                 MsgType.Warning
                             );
                         }
                         else
                             oldFlags.dirsOnly = InputHandler.AskForSwitch(
-                                "Include ONLY FOLDERS in the generated report",
+                                "Include ONLY FOLDERS in the generated report?",
                                 oldFlags.dirsOnly
                             );
                         break;
 
-                    case AdvancedOptions.Extensions_Blacklist:
+                    case CliAdvancedOptions.Extensions_Blacklist:
                         if (oldFlags.dirsOnly)
                         {
                             WriteMsg(
-                                "Cannot edit the blacklist while 'directories only' is active",
+                                "Cannot edit the blacklist while 'directories only' is active.",
                                 MsgType.Warning
                             );
                         }
                         else if (oldFlags.extWhitelist.Any())
                         {
                             WriteMsg(
-                                "Cannot edit the blacklist while filtering by 'whitelist'",
+                                "Cannot edit the blacklist while filtering by 'whitelist'.",
                                 MsgType.Warning
                             );
                             WriteMsg(
-                                "To clear a list, type in the keyword '--clear' instead of extensions",
+                                "To clear a list, type in the keyword '--clear' instead of extensions.",
                                 MsgType.Info
                             );
                         }
@@ -90,22 +91,22 @@ namespace CLI
                         }
                         break;
 
-                    case AdvancedOptions.Extensions_Whitelist:
+                    case CliAdvancedOptions.Extensions_Whitelist:
                         if (oldFlags.dirsOnly)
                         {
                             WriteMsg(
-                                "Cannot edit the whitelist while 'directories only' is active",
+                                "Cannot edit the whitelist while 'directories only' is active.",
                                 MsgType.Warning
                             );
                         }
                         else if (oldFlags.extBlacklist.Any())
                         {
                             WriteMsg(
-                                "Cannot edit the whitelist while filtering by 'blacklist'",
+                                "Cannot edit the whitelist while filtering by 'blacklist'.",
                                 MsgType.Warning
                             );
                             WriteMsg(
-                                "To clear a list, type in the keyword '--clear' instead of extensions",
+                                "To clear a list, type in the keyword '--clear' instead of extensions.",
                                 MsgType.Info
                             );
                         }
@@ -128,37 +129,37 @@ namespace CLI
                         }
                         break;
 
-                    case AdvancedOptions.Files_Only:
+                    case CliAdvancedOptions.Files_Only:
                         if (oldFlags.filesOnly)
                         {
                             WriteMsg(
-                                "Cannot activate the option 'files only' while 'directories only' is active",
+                                "Cannot activate the option 'files only' while 'directories only' is active.",
                                 MsgType.Warning
                             );
                         }
                         else
                             oldFlags.filesOnly = InputHandler.AskForSwitch(
-                                "Include ONLY FILES in the generated report",
+                                "Include ONLY FILES in the generated report?",
                                 oldFlags.filesOnly
                             );
                         break;
 
-                    case AdvancedOptions.Ignore_Empty_Directories:
+                    case CliAdvancedOptions.Ignore_Empty_Directories:
                         if (oldFlags.filesOnly)
                         {
                             WriteMsg(
-                                "Cannot activate the option 'ignore empty directories' while 'files only' is active",
+                                "Cannot activate the option 'ignore empty directories' while 'files only' is active.",
                                 MsgType.Warning
                             );
                         }
                         else
                             oldFlags.ignoreEmptyDirs = InputHandler.AskForSwitch(
-                                "Exclude all empty folders from the report",
+                                "Exclude all empty folders from the report?",
                                 oldFlags.ignoreEmptyDirs
                             );
                         break;
 
-                    case AdvancedOptions.Max_Search_Depth:
+                    case CliAdvancedOptions.Max_Search_Depth:
                         oldFlags.maxLevel = InputHandler.AskForInt(
                             "Maximum search depth",
                             1,
@@ -170,36 +171,60 @@ namespace CLI
                         );
                         break;
 
-                    case AdvancedOptions.Include_Icons:
+                    case CliAdvancedOptions.Include_Icons:
                         oldFlags.includeIcons = InputHandler.AskForSwitch(
-                            "Include icons in the generated report",
+                            "Include icons in the generated report?",
                             oldFlags.includeIcons
                         );
                         break;
 
-                    case AdvancedOptions.Format_Report:
+                    case CliAdvancedOptions.Format_Report:
                         oldFlags.formatReport = InputHandler.AskForSwitch(
-                            "If the report should be formatted based on the output type or just a plain text list",
+                            "If the report should be formatted based on the output type or just a plain text list.",
                             oldFlags.formatReport
                         );
                         break;
 
-                    case AdvancedOptions.Include_Statistics:
+                    case CliAdvancedOptions.Include_Statistics:
                         oldFlags.includeStatistics = InputHandler.AskForSwitch(
-                            "Include statistics in the generated report",
+                            "Include statistics in the generated report?",
                             oldFlags.includeStatistics
                         );
                         break;
 
-                    case AdvancedOptions.Output_Directory:
+                    case CliAdvancedOptions.Output_Directory:
                         string outputDir = InputHandler.AskForDir();
                         oldFlags.outPath = Core.Utils.ReportInfo.GeneratePath(
                             outputDir,
                             oldFlags.targetDir,
-                            oldFlags.reportType
+                            oldFlags.reportType,
+                            oldFlags.reportNameScheme
                         );
                         break;
 
+                    case CliAdvancedOptions.Node_Label_Scheme:
+                        oldFlags.nodeLabel =
+                            (
+                                InputHandler.ChoiceMenu<NodeLabel>(
+                                    "Please choose the node label (naming scheme):"
+                                )
+                            ) ?? oldFlags.nodeLabel;
+                        break;
+
+                    case CliAdvancedOptions.Report_Name_Scheme:
+                        oldFlags.reportNameScheme =
+                            (
+                                InputHandler.ChoiceMenu<ReportNameScheme>(
+                                    "Please choose the report's naming scheme:"
+                                )
+                            ) ?? oldFlags.reportNameScheme;
+                        oldFlags.outPath = ReportInfo.GeneratePath(
+                            Path.GetDirectoryName(oldFlags.outPath),
+                            oldFlags.targetDir,
+                            oldFlags.reportType,
+                            oldFlags.reportNameScheme
+                        );
+                        break;
                     default:
                         back = true;
                         break;

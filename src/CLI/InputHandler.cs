@@ -7,7 +7,12 @@ namespace CLI
     {
         private const int maxDisplayedOptions = 10;
 
-        public static string AskForDir()
+        /// <summary>
+        /// Prompts the user to enter an existing directory path.
+        /// </summary>
+        /// <param name="canBeEmpty">Indicates whether the selected directory is allowed to be empty.</param>
+        /// <returns>The validated directory path.</returns>
+        public static string AskForDir(bool canBeEmpty = true)
         {
             string dir = string.Empty;
 
@@ -23,7 +28,7 @@ namespace CLI
                     WriteMsg($"The folder does not exist: {dir}", MsgType.Error);
                     dir = string.Empty;
                 }
-                else if (!Directory.EnumerateFileSystemEntries(dir).Any())
+                else if (!canBeEmpty && !Directory.EnumerateFileSystemEntries(dir).Any())
                 {
                     WriteMsg($"The folder cannot be empty: {dir}", MsgType.Error);
                     dir = string.Empty;
@@ -169,7 +174,7 @@ namespace CLI
                 else
                 {
                     if (ans.Contains("--clear"))
-                        return new HashSet<string>();
+                        return new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                     var result = Core.Utils.ListParser.ParseExtensionList(ans);
                     if (result.Any())
                     {

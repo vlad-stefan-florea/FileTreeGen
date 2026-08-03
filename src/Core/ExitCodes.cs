@@ -12,6 +12,7 @@
         FileNotFound = 103,
 
         InvalidArgument = 200,
+        IncompatibleArguments = 201,
 
         CannotWriteOutput = 300,
 
@@ -34,6 +35,8 @@
                 ExitCode.FileNotFound => "The specified file could not be found.",
 
                 ExitCode.InvalidArgument => "One or more provided arguments were invalid.",
+                ExitCode.IncompatibleArguments =>
+                    "Two or more provided arguments are incompatible.",
 
                 ExitCode.CannotWriteOutput => "An error occurred while writing to the output file.",
                 ExitCode.OutOfMemory => "The application ran out of memory.",

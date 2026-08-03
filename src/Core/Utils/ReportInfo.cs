@@ -20,12 +20,12 @@ namespace Core.Utils
             return Text.CleanFileName(Path.GetFileName(cleanedPath)).Replace(" ", "_");
         }
 
-        private static string GetExtension(OutputFormat outputType) =>
+        private static string GetExtension(ReportType outputType) =>
             outputType switch
             {
-                OutputFormat.HTML => ".html",
-                OutputFormat.Markdown => ".md",
-                OutputFormat.Text => ".txt",
+                ReportType.HTML => ".html",
+                ReportType.Markdown => ".md",
+                ReportType.Text => ".txt",
                 _ => throw new ArgumentOutOfRangeException(
                     nameof(outputType),
                     $"Unsupported output reportType: {outputType}"
@@ -34,16 +34,27 @@ namespace Core.Utils
 
         public static string GeneratePath(
             string outputDir,
-            string targetDir,
-            OutputFormat Format
+            string targetDirPath,
+            ReportType reportType,
+            ReportNameScheme scheme
         ) =>
             Path.Join(
                 Text.CleanPath(outputDir),
-                GenerateName(targetDir)
-                    + "-"
-                    + Calendar.GetDateReversed()
+                GenerateName(targetDirPath)
+                    + (
+                        scheme switch
+                        {
+                            ReportNameScheme.Name_Date => "-"
+                                + Calendar.GetDateReversed().Replace("-", ""),
+                            ReportNameScheme.Name_Date_Time => "-"
+                                + Calendar.GetDateReversed().Replace("-", "")
+                                + "-"
+                                + Calendar.GetTime().Replace(":", ""),
+                            _ => null, // .NameOnly included
+                        }
+                    )
                     + $"-{AppInfo.AppName}"
-                    + GetExtension(Format)
+                    + GetExtension(reportType)
             );
     }
 }

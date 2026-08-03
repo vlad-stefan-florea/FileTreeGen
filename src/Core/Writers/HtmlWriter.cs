@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using System.Text.Json;
+using Core.Utils;
 
 namespace Core.Writers
 {
@@ -31,8 +32,8 @@ namespace Core.Writers
             if (!isFirstNode)
                 await writer.WriteAsync(",");
             isFirstNode = false;
-            if (!string.IsNullOrEmpty(node.Path))
-                node.Path = node.Path.Replace("\\", "/");
+            if (!string.IsNullOrEmpty(node.Path)) // the node is a file (TreeGenerator doesn't add paths to folders)
+                node.Path = Path.GetRelativePath(_flags.targetDir, node.Path).Replace("\\", "/");
             var line = JsonSerializer.Serialize(node, AppJsonContext.Default.Node);
             await writer.WriteAsync(line);
         }
@@ -54,7 +55,7 @@ namespace Core.Writers
                 StringBuilder htmlHeader = new();
                 htmlHeader.Append("<style>");
                 htmlHeader.Append(
-                    Utils.EmbeddedReader.ReadEmbeddedResource("Core.HtmlTemplates.styles.css")
+                    EmbeddedReader.ReadEmbeddedResource("Core.HtmlTemplates.styles.css")
                 );
                 htmlHeader.Append("</style>");
                 return htmlHeader.ToString().Replace("\n", "").Replace("\r", "");
@@ -77,6 +78,7 @@ namespace Core.Writers
                     "<script>"
                         + $"const noIcons={(!_flags.includeIcons ? "true" : "false")};"
                         + $"const filesOnly={(_flags.filesOnly ? "true" : "false")};"
+                        + $"const rootPath=String.raw`{_flags.targetDir.TrimEnd('\\').Replace("\\", "/")}`;"
                         + "</script>"
                 );
                 html.Append($"<script>");

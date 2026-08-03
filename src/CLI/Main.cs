@@ -1,4 +1,5 @@
 ﻿using Core;
+using Core.Utils;
 using Core.Writers;
 using static CLI.Display;
 using static Core.Settings;
@@ -26,21 +27,23 @@ namespace CLI
             GenFlags flags = new GenFlags();
 
             // target folder
-            flags.targetDir = InputHandler.AskForDir();
+            flags.targetDir = InputHandler.AskForDir(false);
 
             // output format
             flags.reportType =
-                (InputHandler.ChoiceMenu<OutputFormat>("Please choose the report's type:"))
+                (InputHandler.ChoiceMenu<ReportType>("Please choose the report's type:"))
                 ?? flags.reportType;
 
             // DEFAULT VALUES
             string userprofile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
                 downloads = Path.Join(userprofile, "downloads"),
-                outputPath = Core.Utils.ReportInfo.GeneratePath(
+                outputPath = ReportInfo.GeneratePath(
                     downloads,
                     flags.targetDir,
-                    flags.reportType
+                    flags.reportType,
+                    ReportNameScheme.Name_Date
                 );
+
             flags.outPath = outputPath;
 
             // other settings prompt
@@ -55,7 +58,7 @@ namespace CLI
 
             switch (flags.reportType)
             {
-                case OutputFormat.HTML:
+                case ReportType.HTML:
                     HtmlWriter hmtlWriter = new HtmlWriter(flags);
                     Task hmtlWrite = hmtlWriter.WriteAsync();
                     LoadingAnimation(hmtlWrite, "Generating report", 100, true);
@@ -65,7 +68,7 @@ namespace CLI
                         ShowSuccess();
                     break;
 
-                case OutputFormat.Markdown:
+                case ReportType.Markdown:
                     MarkdownWriter mdWriter = new MarkdownWriter(flags);
                     Task mdWrite = mdWriter.WriteAsync();
                     LoadingAnimation(mdWrite, "Generating report", 100, true);
@@ -75,7 +78,7 @@ namespace CLI
                         ShowSuccess();
                     break;
 
-                case OutputFormat.Text:
+                case ReportType.Text:
                     Core.Writers.TextWriter txtWriter = new Core.Writers.TextWriter(flags);
                     Task txtWrite = txtWriter.WriteAsync();
                     LoadingAnimation(txtWrite, "Generating report", 100, true);

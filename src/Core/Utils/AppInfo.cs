@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 
-namespace Core
+namespace Core.Utils
 {
     public static class AppInfo
     {

@@ -13,6 +13,7 @@ function initTree() {
   const rootNode = nodeMap.get(0);
   document.getElementById("treeContainer").innerHTML = createHeader(rootNode);
 }
+initTree();
 function createIdleHeader(node, message) {
   return `
         <button class="h" id="node-${node.Id}" data-state="empty" style='cursor:default' aria-label='Empty Folder: ${node.Name}'>
@@ -42,7 +43,7 @@ function createHeader(node) {
     const ext = getFileExt(node.Path);
     const iconKey = EXTENSION_MAP[ext] || "default";
     return `
-            <a href="file:///${node.Path}" class="h" id="node-${node.Id}" target="_blank" aria-label='Open File: ${node.Name}'>
+            <a href="file:///${rootPath}/${node.Path}" class="h" id="node-${node.Id}" target="_blank" aria-label='Open File: ${node.Name}'>
               ${noIcons ? "" : `<span class="ico">${ICONS[iconKey] || ICONS["default"]}</span>`}
               ${node.Name}
             </a>
@@ -94,4 +95,3 @@ function removeChildrenFromDOM(parentFolderId) {
 function getFileExt(filePath) {
   return filePath.split(".").pop().toLowerCase();
 }
-initTree();

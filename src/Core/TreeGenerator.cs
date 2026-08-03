@@ -9,7 +9,8 @@ namespace Core
         private GenFlags _flags = new();
         public Metadata metadata = new();
         public Statistics stats = new();
-        public Dictionary<string, int> Extensions { get; set; } = new();
+        public Dictionary<string, int> Extensions { get; set; } =
+            new(StringComparer.OrdinalIgnoreCase);
         private bool filterByWhitelist = false,
             filterByBlacklist = false;
 
@@ -76,7 +77,15 @@ namespace Core
                 {
                     Id = newId,
                     ParentId = parentId,
-                    Name = _flags.useFullPaths ? directory.FullName : directory.Name,
+                    Name = _flags.nodeLabel switch
+                    {
+                        Settings.NodeLabel.Full_Path => directory.FullName,
+                        Settings.NodeLabel.Relative_Path => Path.GetRelativePath(
+                            _flags.targetDir,
+                            directory.FullName
+                        ),
+                        _ => directory.Name, // .Name included
+                    },
                     IsFile = false,
                     IsEmptyDir = folderIsEmpty,
                     IsSkipped = !hasAccess,
@@ -107,7 +116,15 @@ namespace Core
                             ParentId = newId,
                             Name =
                                 (!_flags.includeIcons ? null : "[→] ")
-                                + subDir.Name
+                                + _flags.nodeLabel switch
+                                {
+                                    Settings.NodeLabel.Full_Path => subDir.FullName,
+                                    Settings.NodeLabel.Relative_Path => Path.GetRelativePath(
+                                        _flags.targetDir,
+                                        subDir.FullName
+                                    ),
+                                    _ => subDir.Name, // .Name included
+                                }
                                 + " (reparse point)",
                             IsFile = false,
                             IsSkipped = true,
@@ -133,16 +150,11 @@ namespace Core
                 {
                     foreach (var file in files)
                     {
+                        string ext = file.Extension;
                         bool skipped = false;
-                        if (
-                            filterByWhitelist
-                            && !_flags.extWhitelist.Contains(file.Extension.ToLowerInvariant())
-                        )
+                        if (filterByWhitelist && !_flags.extWhitelist.Contains(ext))
                             skipped = true;
-                        if (
-                            filterByBlacklist
-                            && _flags.extBlacklist.Contains(file.Extension.ToLowerInvariant())
-                        )
+                        if (filterByBlacklist && _flags.extBlacklist.Contains(ext))
                             skipped = true;
                         if (_flags.includeStatistics)
                         {
@@ -154,13 +166,20 @@ namespace Core
                         if (skipped)
                             continue;
 
-                        string ext = file.Extension.ToLowerInvariant();
                         Extensions[ext] = Extensions.GetValueOrDefault(ext) + 1;
                         yield return new Node
                         {
                             Id = _currentId++,
                             ParentId = _flags.filesOnly ? 0 : newId,
-                            Name = _flags.useFullPaths ? file.FullName : file.Name,
+                            Name = _flags.nodeLabel switch
+                            {
+                                Settings.NodeLabel.Full_Path => file.FullName,
+                                Settings.NodeLabel.Relative_Path => Path.GetRelativePath(
+                                    _flags.targetDir,
+                                    file.FullName
+                                ),
+                                _ => file.Name, // .Name included
+                            },
                             IsFile = true,
                             Level = _flags.filesOnly ? 0 : level + 1,
                             Path = file.FullName,
