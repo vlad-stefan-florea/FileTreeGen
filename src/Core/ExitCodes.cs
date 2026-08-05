@@ -5,11 +5,13 @@
         Success = 0,
         Unknown = 1,
 
-        RootAccessDenied = 100,
-        RootIsEmpty = 101,
+        TargetAccessDenied = 100,
+        TargetIsEmpty = 101,
+        TargetNotFound = 102,
 
-        DirectoryNotFound = 102,
-        FileNotFound = 103,
+        OutDirNotFound = 110,
+
+        FileNotFound = 120,
 
         InvalidArgument = 200,
         IncompatibleArguments = 201,
@@ -29,9 +31,10 @@
                 ExitCode.Success => "Report generated successfully.",
                 ExitCode.Unknown => "An unknown error has occurred.",
 
-                ExitCode.RootAccessDenied => "Access to the target directory was denied.",
-                ExitCode.RootIsEmpty => "The target directory cannot be empty.",
-                ExitCode.DirectoryNotFound => "The specified directory could not be found.",
+                ExitCode.TargetAccessDenied => "Access to the target directory was denied.",
+                ExitCode.TargetIsEmpty => "The target directory cannot be empty.",
+                ExitCode.TargetNotFound => "The target directory could not be found.",
+                ExitCode.OutDirNotFound => "The output directory could not be found.",
                 ExitCode.FileNotFound => "The specified file could not be found.",
 
                 ExitCode.InvalidArgument => "One or more provided arguments were invalid.",
@@ -49,16 +52,19 @@
             ex switch
             {
                 UnauthorizedAccessException => new(
-                    ExitCode.RootAccessDenied,
-                    Get(ExitCode.RootAccessDenied),
+                    ExitCode.TargetAccessDenied,
+                    Get(ExitCode.TargetAccessDenied),
                     ex
                 ),
 
                 FileNotFoundException => new(ExitCode.FileNotFound, Get(ExitCode.FileNotFound), ex),
 
                 DirectoryNotFoundException => new(
-                    ExitCode.DirectoryNotFound,
-                    Get(ExitCode.DirectoryNotFound),
+                    ExitCode.OutDirNotFound,
+                    // Target directory errors are translated directly inside TreeGenerator.
+                    // Any DirectoryNotFoundException reaching this point can only
+                    // originate from the output directory.
+                    Get(ExitCode.OutDirNotFound),
                     ex
                 ),
 

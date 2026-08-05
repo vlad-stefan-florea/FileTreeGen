@@ -55,6 +55,7 @@
             Node_Label_Scheme,
             Output_Directory,
             Report_Name_Scheme,
+            Tree_Only,
         }
 
         public enum ByteScales

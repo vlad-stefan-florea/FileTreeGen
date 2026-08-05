@@ -21,8 +21,11 @@ namespace CLI
 
         public static async Task Run()
         {
+            Console.BackgroundColor = ConsoleColor.Black;
+            Console.ForegroundColor = ConsoleColor.White;
             WriteColor(Title, ConsoleColor.Green);
             WriteColor(AppHeaderInfo, ConsoleColor.DarkGreen);
+
             // GenFlags
             GenFlags flags = new GenFlags();
 
@@ -34,18 +37,6 @@ namespace CLI
                 (InputHandler.ChoiceMenu<ReportType>("Please choose the report's type:"))
                 ?? flags.reportType;
 
-            // DEFAULT VALUES
-            string userprofile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                downloads = Path.Join(userprofile, "downloads"),
-                outputPath = ReportInfo.GeneratePath(
-                    downloads,
-                    flags.targetDir,
-                    flags.reportType,
-                    ReportNameScheme.Name_Date
-                );
-
-            flags.outPath = outputPath;
-
             // other settings prompt
             bool advanced = InputHandler.AskYN("Edit advanced settings?", false);
             if (advanced)
@@ -53,7 +44,14 @@ namespace CLI
                 flags = AdvancedMenu.Edit(flags);
             }
 
-            WriteMsg($"The report will be saved at: '{outputPath}'", MsgType.Info);
+            string outPath = ReportInfo.GeneratePath(
+                flags.outDir,
+                flags.targetDir,
+                flags.reportType,
+                flags.reportNameScheme
+            );
+
+            WriteMsg($"The report will be saved at: '{outPath}'", MsgType.Info);
             WaitForInput();
 
             switch (flags.reportType)
@@ -92,12 +90,12 @@ namespace CLI
                     break;
             }
             if (flags.autoOpenReport)
-                Core.Utils.FileSystem.OpenPath(flags.outPath);
+                FileSystem.OpenPath(outPath);
             else
             {
                 bool ans = InputHandler.AskYN("Open the report?", true);
                 if (ans)
-                    Core.Utils.FileSystem.OpenPath(flags.outPath);
+                    FileSystem.OpenPath(outPath);
             }
         }
 

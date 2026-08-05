@@ -160,13 +160,13 @@ namespace CLI
                         break;
 
                     case CliAdvancedOptions.Max_Search_Depth:
-                        oldFlags.maxLevel = InputHandler.AskForInt(
+                        oldFlags.maxDepth = InputHandler.AskForInt(
                             "Maximum search depth",
                             1,
                             int.MaxValue
                         );
                         WriteMsg(
-                            $"Maximum search depth was set to: '{oldFlags.maxLevel}'",
+                            $"Maximum search depth was set to: '{oldFlags.maxDepth}'",
                             MsgType.Save
                         );
                         break;
@@ -186,20 +186,22 @@ namespace CLI
                         break;
 
                     case CliAdvancedOptions.Include_Statistics:
-                        oldFlags.includeStatistics = InputHandler.AskForSwitch(
-                            "Include statistics in the generated report?",
-                            oldFlags.includeStatistics
-                        );
+                        if (oldFlags.treeOnly)
+                        {
+                            WriteMsg(
+                                "Cannot include statistics in the report when 'tree only' is active.",
+                                MsgType.Warning
+                            );
+                        }
+                        else
+                            oldFlags.includeStatistics = InputHandler.AskForSwitch(
+                                "Include statistics in the generated report?",
+                                oldFlags.includeStatistics
+                            );
                         break;
 
                     case CliAdvancedOptions.Output_Directory:
-                        string outputDir = InputHandler.AskForDir();
-                        oldFlags.outPath = Core.Utils.ReportInfo.GeneratePath(
-                            outputDir,
-                            oldFlags.targetDir,
-                            oldFlags.reportType,
-                            oldFlags.reportNameScheme
-                        );
+                        oldFlags.outDir = InputHandler.AskForDir();
                         break;
 
                     case CliAdvancedOptions.Node_Label_Scheme:
@@ -218,13 +220,23 @@ namespace CLI
                                     "Please choose the report's naming scheme:"
                                 )
                             ) ?? oldFlags.reportNameScheme;
-                        oldFlags.outPath = ReportInfo.GeneratePath(
-                            Path.GetDirectoryName(oldFlags.outPath),
-                            oldFlags.targetDir,
-                            oldFlags.reportType,
-                            oldFlags.reportNameScheme
-                        );
                         break;
+
+                    case CliAdvancedOptions.Tree_Only:
+                        oldFlags.treeOnly = InputHandler.AskForSwitch(
+                            "Include statistics in the generated report?",
+                            oldFlags.treeOnly
+                        );
+                        if (oldFlags.treeOnly && oldFlags.includeStatistics)
+                        {
+                            oldFlags.includeStatistics = false;
+                            WriteMsg(
+                                "The 'include statistics' is incompatible with 'tree only' and has been turned off.",
+                                MsgType.Warning
+                            );
+                        }
+                        break;
+
                     default:
                         back = true;
                         break;

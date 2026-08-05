@@ -25,12 +25,12 @@ namespace CLI
                     WriteMsg($"Please drag & drop the folder or fill in its path", MsgType.Info);
                 else if (!Directory.Exists(dir))
                 {
-                    WriteMsg($"The folder does not exist: {dir}", MsgType.Error);
+                    WriteMsg($"The folder does not exist: {dir}", MsgType.Warning);
                     dir = string.Empty;
                 }
                 else if (!canBeEmpty && !Directory.EnumerateFileSystemEntries(dir).Any())
                 {
-                    WriteMsg($"The folder cannot be empty: {dir}", MsgType.Error);
+                    WriteMsg($"The folder cannot be empty: {dir}", MsgType.Warning);
                     dir = string.Empty;
                 }
             }

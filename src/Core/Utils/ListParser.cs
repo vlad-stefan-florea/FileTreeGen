@@ -2,7 +2,10 @@
 {
     public class ListParser
     {
-        private static char[] validSeparators = new[] { ',', ';' };
+        private static char[] validSeparators =  { ',', ';' },
+            invalidChars = Path.GetInvalidFileNameChars();
+        private const int maxChars = 32;
+        private static string emptyExt = "<empty>";
 
         public static HashSet<string> ParseExtensionList(string input)
         {
@@ -15,10 +18,13 @@
             {
                 if (string.IsNullOrWhiteSpace(part))
                     continue;
-                if (
-                    part.Equals("none", StringComparison.InvariantCultureIgnoreCase)
-                    || part.Equals("\"\"", StringComparison.InvariantCultureIgnoreCase)
-                ) // use ' "" ' or 'none' to indicate a null/empty file extension
+                if (part.Length > maxChars)
+                    continue;
+                if (part.IndexOfAny(invalidChars) >= 0)
+                    continue;
+
+                if (part.Equals(emptyExt, StringComparison.InvariantCultureIgnoreCase))
+                // use empty quotation marks ("") to indicate a null/empty file extension
                 {
                     result.Add("");
                     continue;

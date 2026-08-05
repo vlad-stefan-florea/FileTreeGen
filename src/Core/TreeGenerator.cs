@@ -1,4 +1,5 @@
-﻿using Core.Utils;
+﻿using System.Reflection.PortableExecutable;
+using Core.Utils;
 
 namespace Core
 {
@@ -30,20 +31,28 @@ namespace Core
             _currentId = 0;
             try
             {
-                // test if the root folder is accessible in the first place
+                // test if the root folder is valid, accessible and not empty
                 bool hasContents = Directory.EnumerateFileSystemEntries(_flags.targetDir).Any();
                 if (!hasContents)
                     throw new CoreException(
-                        ExitCode.RootIsEmpty,
-                        $"The target directory ({_flags.targetDir}) was found empty when attempted to generate the report."
+                        ExitCode.TargetIsEmpty,
+                        ExitMessages.Get(ExitCode.TargetIsEmpty)
                     );
                 return TraverseDirectory(new DirectoryInfo(_flags.targetDir), null, 0);
             }
             catch (UnauthorizedAccessException ex)
             {
-                throw new CoreException(ExitCode.RootAccessDenied, ex.Message);
-                // if not, throw an error and don't generate any report
-                // why would someone need an 'empty' report?
+                throw new CoreException(
+                    ExitCode.TargetAccessDenied,
+                    ExitMessages.Get(ExitCode.TargetAccessDenied)
+                );
+            }
+            catch (DirectoryNotFoundException ex)
+            {
+                throw new CoreException(
+                    ExitCode.TargetNotFound,
+                    ExitMessages.Get(ExitCode.TargetNotFound)
+                );
             }
         }
 
@@ -89,12 +98,12 @@ namespace Core
                     IsFile = false,
                     IsEmptyDir = folderIsEmpty,
                     IsSkipped = !hasAccess,
-                    IsUnscanned = level == _flags.maxLevel - 1,
+                    IsUnscanned = level == _flags.maxDepth - 1,
                     Level = level,
                 };
             }
 
-            if (!hasAccess || level >= _flags.maxLevel)
+            if (!hasAccess || level >= _flags.maxDepth)
             {
                 yield break;
             }

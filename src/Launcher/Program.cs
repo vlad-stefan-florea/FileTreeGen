@@ -19,8 +19,7 @@ namespace Launcher
                 }
                 else
                 {
-                    WriteMsg("This feature is currently in development 🛠️", MsgType.Warning);
-                    //await Silent.Main.ParseAndRun(args);
+                    await Silent.Main.Run(args);
                 }
             }
             catch (CoreException ex)
@@ -33,9 +32,9 @@ namespace Launcher
             }
             finally
             {
-                if (needsCLI)
+                if (_ex.Code != ExitCode.Success)
                 {
-                    if (_ex.Code != ExitCode.Success)
+                    if (needsCLI)
                     {
                         WriteMsg($"[{_ex.Code}]: {_ex.Message}", MsgType.Error);
                         bool errDetails = AskYN(
@@ -59,11 +58,21 @@ namespace Launcher
                             }
                         }
                     }
-                    else { }
+                    else
+                    {
+                        WriteMsg("[CODE]: " + _ex.Code, MsgType.Error);
+                        WriteMsg("[DESCRIPTION]: " + _ex.Code, MsgType.Error);
+                        if (_ex.InnerException != null)
+                        {
+                            Console.WriteLine("[INNER MESSAGE]:\n" + _ex.InnerException.Message);
+                            Console.WriteLine(
+                                "[INNER STACK TRACE]:\n" + _ex.InnerException.StackTrace
+                            );
+                        }
+                    }
                 }
-
-                Environment.Exit((int)_ex.Code);
             }
+            Environment.Exit((int)_ex.Code);
         }
     }
 }
