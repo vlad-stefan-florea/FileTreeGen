@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Threading.Channels;
 
 namespace CLI
 {
@@ -21,9 +22,9 @@ namespace CLI
             Console.ForegroundColor = txt;
             Console.BackgroundColor = bkg;
             Console.Write(content);
+            Console.ResetColor();
             if (newLine)
                 Console.WriteLine();
-            Console.ResetColor();
         }
 
         public enum MsgType
@@ -123,6 +124,9 @@ namespace CLI
                 sw.Stop();
             }
         }
+
+        public static void DrawLine(char symbol, int length) =>
+            Console.WriteLine(new string(symbol, length));
 
         public static void WaitForInput()
         {

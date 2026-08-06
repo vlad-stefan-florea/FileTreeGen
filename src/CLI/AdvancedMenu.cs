@@ -183,6 +183,11 @@ namespace CLI
                             "If the report should be formatted based on the output type or just a plain text list.",
                             oldFlags.formatReport
                         );
+                        if (oldFlags.reportType == ReportType.HTML && !oldFlags.formatReport)
+                            WriteMsg(
+                                "Cannot generate a non-formatted HTML report. The 'format report' option has been set to 'true'.",
+                                MsgType.Warning
+                            );
                         break;
 
                     case CliAdvancedOptions.Include_Statistics:
@@ -235,6 +240,13 @@ namespace CLI
                                 MsgType.Warning
                             );
                         }
+                        break;
+
+                    case CliAdvancedOptions.Ignore_SymLinks:
+                        oldFlags.ignoreSymLinks = InputHandler.AskForSwitch(
+                            "Exclude all symlinks from the report?",
+                            oldFlags.ignoreSymLinks
+                        );
                         break;
 
                     default:

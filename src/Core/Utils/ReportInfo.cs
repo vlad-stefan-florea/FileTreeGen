@@ -44,9 +44,9 @@ namespace Core.Utils
                     + (
                         scheme switch
                         {
-                            ReportNameScheme.Name_Date => "-"
+                            ReportNameScheme.NameDate => "-"
                                 + Calendar.GetDateReversed().Replace("-", ""),
-                            ReportNameScheme.Name_Date_Time => "-"
+                            ReportNameScheme.NameDateTime => "-"
                                 + Calendar.GetDateReversed().Replace("-", "")
                                 + "-"
                                 + Calendar.GetTime().Replace(":", ""),

@@ -1,4 +1,6 @@
-﻿namespace Core
+﻿using System.Timers;
+
+namespace Core
 {
     public enum ExitCode
     {

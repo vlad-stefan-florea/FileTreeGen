@@ -22,6 +22,7 @@ namespace Core
             DirectoryInfo info = new(metadata.dirPath);
             metadata.dirName = info.Name;
             metadata.genDateTime = Calendar.GetDate().Replace("-", "/") + " " + Calendar.GetTime();
+            metadata.privileges = OS.GetPrivilegeLevel();
             filterByWhitelist = _flags.extWhitelist.Any();
             filterByBlacklist = _flags.extBlacklist.Any();
         }
@@ -88,8 +89,8 @@ namespace Core
                     ParentId = parentId,
                     Name = _flags.nodeLabel switch
                     {
-                        Settings.NodeLabel.Full_Path => directory.FullName,
-                        Settings.NodeLabel.Relative_Path => Path.GetRelativePath(
+                        Settings.NodeLabel.FullPath => directory.FullName,
+                        Settings.NodeLabel.RelativePath => Path.GetRelativePath(
                             _flags.targetDir,
                             directory.FullName
                         ),
@@ -113,7 +114,7 @@ namespace Core
             if (subDirs != null)
                 foreach (var subDir in subDirs)
                 {
-                    if (FileSystem.IsReparsePoint(subDir.FullName))
+                    if (FileSystem.IsReparsePoint(subDir.FullName) && !_flags.ignoreSymLinks)
                     {
                         if (_flags.includeStatistics)
                             stats.skippedFolders++;
@@ -127,8 +128,8 @@ namespace Core
                                 (!_flags.includeIcons ? null : "[→] ")
                                 + _flags.nodeLabel switch
                                 {
-                                    Settings.NodeLabel.Full_Path => subDir.FullName,
-                                    Settings.NodeLabel.Relative_Path => Path.GetRelativePath(
+                                    Settings.NodeLabel.FullPath => subDir.FullName,
+                                    Settings.NodeLabel.RelativePath => Path.GetRelativePath(
                                         _flags.targetDir,
                                         subDir.FullName
                                     ),
@@ -182,8 +183,8 @@ namespace Core
                             ParentId = _flags.filesOnly ? 0 : newId,
                             Name = _flags.nodeLabel switch
                             {
-                                Settings.NodeLabel.Full_Path => file.FullName,
-                                Settings.NodeLabel.Relative_Path => Path.GetRelativePath(
+                                Settings.NodeLabel.FullPath => file.FullName,
+                                Settings.NodeLabel.RelativePath => Path.GetRelativePath(
                                     _flags.targetDir,
                                     file.FullName
                                 ),

@@ -105,14 +105,14 @@ namespace Core.Writers
                 "REPORT METADATA SECTION: "
                 + $"TARGET DIRECTORY:{Generator.metadata.dirName} ;"
                 + $"TARGET PATH: {Generator.metadata.dirPath} ;"
-                + $"ACCESS LEVEL: {Generator.metadata.accessLevel} ;"
+                + $"PRIVILEGES: {Generator.metadata.privileges} ;"
                 + $"GENERATED AT: {Generator.metadata.genDateTime} ;";
             html.Append(
                 $"<div class=\"p\" tabindex=\"0\" aria-label=\"{ariaLabel}\"><h4>REPORT METADATA</h4><ul>"
             );
             html.Append($"<li><b>TARGET DIRECTORY:</b> {Generator.metadata.dirName}</li>");
             html.Append($"<li><b>TARGET PATH:</b> {Generator.metadata.dirPath}</li>");
-            html.Append($"<li><b>ACCESS LEVEL:</b> {Generator.metadata.accessLevel}</li>");
+            html.Append($"<li><b>ACCESS LEVEL:</b> {Generator.metadata.privileges}</li>");
             html.Append($"<li><b>GENERATED AT:</b> {Generator.metadata.genDateTime}</li>");
             html.Append("</ul></div>");
             if (!_flags.includeStatistics)

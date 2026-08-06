@@ -43,7 +43,7 @@ namespace Launcher
                         );
                         if (errDetails)
                         {
-                            WriteMsg("[CODE]: " + _ex.Code, MsgType.Error);
+                            WriteMsg("[CODE]: " + (int)_ex.Code + $" ({_ex.Code})", MsgType.Error);
                             WriteMsg("[DESCRIPTION]: " + _ex.Code, MsgType.Error);
                             if (_ex.InnerException != null)
                             {
@@ -60,13 +60,17 @@ namespace Launcher
                     }
                     else
                     {
-                        WriteMsg("[CODE]: " + _ex.Code, MsgType.Error);
-                        WriteMsg("[DESCRIPTION]: " + _ex.Code, MsgType.Error);
+                        WriteMsg("[CODE]: " + (int)_ex.Code + $" ({_ex.Code})", MsgType.Error);
+                        WriteMsg("[DESCRIPTION]: " + _ex.Message, MsgType.Error);
                         if (_ex.InnerException != null)
                         {
-                            Console.WriteLine("[INNER MESSAGE]:\n" + _ex.InnerException.Message);
-                            Console.WriteLine(
-                                "[INNER STACK TRACE]:\n" + _ex.InnerException.StackTrace
+                            WriteMsg(
+                                "[INNER MESSAGE]:\n" + _ex.InnerException.Message,
+                                MsgType.Error
+                            );
+                            WriteMsg(
+                                "[INNER STACK TRACE]:\n" + _ex.InnerException.StackTrace,
+                                MsgType.Error
                             );
                         }
                     }

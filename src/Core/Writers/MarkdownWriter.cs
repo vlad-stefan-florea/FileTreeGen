@@ -58,7 +58,7 @@ namespace Core.Writers
                 ### REPORT METADATA
                 - **TARGET DIRECTORY:**: {Generator.metadata.dirName}
                 - **TARGET PATH:**: {Generator.metadata.dirPath}
-                - **ACESS LEVEL:**: {Generator.metadata.accessLevel}
+                - **PRIVILEGES:**: {Generator.metadata.privileges}
                 - **GENERATED AT:**: {Generator.metadata.genDateTime}
                 ---
                 """

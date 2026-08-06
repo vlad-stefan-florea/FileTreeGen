@@ -15,28 +15,29 @@
             Medium = 1024 * 4, // 4 KB (default)
             Big = 1024 * 8, // 8 KB
             Large = 1024 * 16, // 16 KB
-            Extra_Large = 1024 * 32, // 32 KB
-            High_Performance = 1024 * 64, // 64 KB
+            ExtraLarge = 1024 * 32, // 32 KB
+            HighPerformance = 1024 * 64, // 64 KB
         }
 
-        public enum Privileges
+        public enum PrivilegeLevel
         {
-            Administrator,
             Standard,
+            Elevated,
+            Unknown,
         }
 
         public enum NodeLabel
         {
             Name,
-            Full_Path,
-            Relative_Path,
+            FullPath,
+            RelativePath,
         }
 
         public enum ReportNameScheme
         {
-            Name_Only, // <folder name>-FileTreeGen
-            Name_Date, // <folder name>-yyyyMMdd-FileTreeGen
-            Name_Date_Time, // <folder name>-yyyyMMdd-HHmmss-FileTreeGen
+            NameOnly, // <folder name>-FileTreeGen
+            NameDate, // <folder name>-yyyyMMdd-FileTreeGen
+            NameDateTime, // <folder name>-yyyyMMdd-HHmmss-FileTreeGen
         }
 
         public enum CliAdvancedOptions
@@ -49,6 +50,7 @@
             Files_Only,
             Format_Report,
             Ignore_Empty_Directories,
+            Ignore_SymLinks,
             Include_Icons,
             Include_Statistics,
             Max_Search_Depth,
