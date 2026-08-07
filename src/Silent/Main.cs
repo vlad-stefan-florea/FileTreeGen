@@ -319,20 +319,17 @@ namespace Silent
             {
                 case ReportType.HTML:
                     HtmlWriter hmtlWriter = new HtmlWriter(_flags);
-                    Task hmtlWrite = hmtlWriter.WriteAsync();
-                    await hmtlWrite;
+                    await hmtlWriter.WriteAsync();
                     break;
 
                 case ReportType.Markdown:
                     MarkdownWriter mdWriter = new MarkdownWriter(_flags);
-                    Task mdWrite = mdWriter.WriteAsync();
-                    await mdWrite;
+                    await mdWriter.WriteAsync();
                     break;
 
                 case ReportType.Text:
                     Core.Writers.TextWriter txtWriter = new Core.Writers.TextWriter(_flags);
-                    Task txtWrite = txtWriter.WriteAsync();
-                    await txtWrite;
+                    await txtWriter.WriteAsync();
                     break;
 
                 default:

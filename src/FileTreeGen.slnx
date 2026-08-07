@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="Benchmark/Benchmark.csproj" Id="25aa9a55-a027-460b-9a2d-3523d534ab53" />
   <Project Path="CLI/CLI.csproj" Id="e413efd1-cb92-47f1-abea-a8952e595fd1" />
   <Project Path="Core/Core.csproj" Id="1b65f359-8cc8-46e0-aeee-10342205f21c" />
   <Project Path="Launcher/Launcher.csproj" Id="62f31121-b466-40a0-84e5-88aaf5afa8dd" />

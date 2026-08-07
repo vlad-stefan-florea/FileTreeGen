@@ -9,10 +9,15 @@
 *.user
 *.userosscache
 *.sln.docstates
+
 # Scripts and other files
 *.bat
 *.ps1
 *.props
+
+# Benchmarks
+/benchmarks
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
