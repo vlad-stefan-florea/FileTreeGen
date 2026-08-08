@@ -1,5 +1,4 @@
 ﻿using Core;
-using Core.Utils;
 using static CLI.Display;
 using static Core.Settings;
 

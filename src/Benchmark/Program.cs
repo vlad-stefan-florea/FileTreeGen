@@ -14,8 +14,7 @@ namespace Benchmark
             Console.OutputEncoding = System.Text.Encoding.UTF8;
             CoreException _ex = new(ExitCode.Success, ExitMessages.Get(ExitCode.Success));
             GenFlags flags = new GenFlags();
-            string tempDir = Path.GetTempPath(),
-                tempPath = Path.Combine(tempDir, "filetreegen_benchmark"),
+            string tempPath = @"C:\ftg_tests",
                 benchmarksDir = "../../../../../benchmarks",
                 csvPath = Path.Combine(
                     benchmarksDir,
@@ -25,11 +24,12 @@ namespace Benchmark
                 Directory.CreateDirectory(benchmarksDir);
             TestData[] dataset =
             {
-                new("Tiny", 100, 100, 3),
+                new("Tiny", 100, 20, 3),
                 new("Small", 1_000, 500, 4),
                 new("Medium", 10_000, 1_000, 6),
                 new("Large", 100_000, 10_000, 10),
             };
+            const int SampleIntervalMs = 25;
             try
             {
                 await PerformTests(dataset, tempPath);
@@ -66,7 +66,7 @@ namespace Benchmark
                 using StreamWriter csvWriter = new(csvPath);
 
                 csvWriter.WriteLine(
-                    "Data Set;Files;Folders;Depth;Report Type;Time (Ms);Peak Ram (MB);Report Size (KB);Files/Second"
+                    "Dataset;Files;Folders;Depth;Report Type;Time (Ms);Peak Ram (MB);Report Size;Files/Second"
                 );
                 flags.outDir = rootPath;
                 for (int i = 0; i < data.Length; i++)
@@ -82,6 +82,7 @@ namespace Benchmark
                     WriteMsg($"Generating structure for test: " + (i + 1), MsgType.Info);
                     string testPath = StructureBuilder.Build(
                         rootPath,
+                        $"t{i}",
                         set.Files,
                         set.Dirs,
                         set.MaxDepth
@@ -101,24 +102,28 @@ namespace Benchmark
                         Process process = Process.GetCurrentProcess();
                         long peakRam = 0;
                         CancellationTokenSource cts = new();
-                        Thread monitor = new(() =>
+                        Task monitor = Task.Run(async () =>
                         {
                             while (!cts.Token.IsCancellationRequested)
                             {
                                 process.Refresh();
                                 peakRam = Math.Max(peakRam, process.WorkingSet64);
-                                Thread.Sleep(100);
+                                try
+                                {
+                                    await Task.Delay(SampleIntervalMs, cts.Token);
+                                }
+                                catch (OperationCanceledException)
+                                {
+                                    break;
+                                }
                             }
                         });
-                        monitor.Start();
-
                         // benchmark
                         sw.Start();
                         await GenerateReport(flags);
-                        // collect data
                         sw.Stop();
                         cts.Cancel();
-                        monitor.Join();
+                        await monitor;
 
                         string outPath = ReportInfo.GeneratePath(
                             flags.outDir,
@@ -127,33 +132,18 @@ namespace Benchmark
                             flags.reportNameScheme
                         );
                         FileInfo outFile = new FileInfo(outPath);
-                        long size = outFile.Length / 1024,
-                            ram = peakRam / 1024 / 1024;
-                        // Data Set | Files | Folders | Depth | Report Type | Time (Ms) | Peak Ram (MB) | Report Size (KB) | Files/Second
+                        string size = FileSystem.ComputeSize(outFile.Length);
+                        long ram = peakRam / 1024 / 1024;
+                        // Data Set | Files | Folders | Depth | Report Type | Time (Ms) | Peak Ram (MB) | Report Size | Files/Second
                         csvWriter.WriteLine(
-                            set.Label
-                                + ';'
-                                + set.Files
-                                + ';'
-                                + set.Dirs
-                                + ';'
-                                + set.MaxDepth
-                                + ';'
-                                + type
-                                + ';'
-                                + sw.ElapsedMilliseconds
-                                + ';'
-                                + ram
-                                + ';'
-                                + size
-                                + ';'
-                                + ((double)set.Files / sw.ElapsedMilliseconds * 1000).ToString(
+                            $"{set.Label};{set.Files};{set.Dirs};{set.MaxDepth};{type};{sw.ElapsedMilliseconds};{ram};{size};{((double)set.Files / sw.ElapsedMilliseconds * 1000).ToString(
                                     "#0.00"
-                                )
+                                )}"
                         );
-                        WriteMsg($"{type} - {sw.ElapsedMilliseconds} ms", MsgType.Success);
+                        WriteMsg($"{type} - {sw.ElapsedMilliseconds} ms", MsgType.Info);
                         sw.Reset();
                     }
+                    WriteMsg($"DATASET '{set.Label}' FINISHED", MsgType.Success);
                 }
                 WriteMsg("Cleaning up...", MsgType.Info);
                 Directory.Delete(rootPath, true);

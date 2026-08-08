@@ -23,7 +23,7 @@
             ".gif",
         ];
 
-        public static string Build(string rootPath, int files, int dirs, int depth)
+        public static string Build(string rootPath, string testName, int files, int dirs, int depth)
         {
             //reset counters
             allDirs.Clear();
@@ -32,8 +32,7 @@
             targetDirs = dirs;
             targetFiles = files;
             // root dir setup
-            string testName = files + "f_" + dirs + "d_" + depth,
-                testPath = Path.Combine(rootPath, testName);
+            string testPath = Path.Combine(rootPath, testName);
 
             if (Directory.Exists(testPath))
                 Directory.Delete(testPath, true);
@@ -58,7 +57,7 @@
                 int children = Math.Min(GetRandomInt(minDirs, maxDirs), targetDirs - createdDirs);
                 for (int i = 0; i < children; i++)
                 {
-                    string child = Path.Combine(current, $"Folder{createdDirs + 1:D6}");
+                    string child = Path.Combine(current, $"d{createdDirs + 1}");
                     Directory.CreateDirectory(child);
                     allDirs.Add(child);
                     createdDirs++;
@@ -74,7 +73,7 @@
                 string dir = allDirs[random.Next(allDirs.Count)];
                 string file = Path.Combine(
                     dir,
-                    $"File{createdFiles + 1:D6}" + extensions[random.Next(extensions.Length)]
+                    $"f{createdFiles + 1}" + extensions[random.Next(extensions.Length)]
                 );
                 File.Create(file).Dispose();
                 createdFiles++;

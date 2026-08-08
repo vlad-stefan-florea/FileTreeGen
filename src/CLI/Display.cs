@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Threading.Channels;
 
 namespace CLI
 {

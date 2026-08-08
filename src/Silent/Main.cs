@@ -1,5 +1,4 @@
 ﻿using System.CommandLine;
-using System.Security.Cryptography;
 using Core;
 using Core.Utils;
 using Core.Writers;
