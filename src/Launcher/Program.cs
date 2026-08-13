@@ -10,6 +10,7 @@ namespace Launcher
         {
             Console.OutputEncoding = System.Text.Encoding.UTF8;
             CoreException _ex = new(ExitCode.Success, ExitMessages.Get(ExitCode.Success));
+            (CoreException Ex, List<string> Errors) silentResult = new();
             bool needsCLI = args.Length == 0;
             try
             {
@@ -19,7 +20,8 @@ namespace Launcher
                 }
                 else
                 {
-                    await Silent.Main.Run(args);
+                    silentResult = await Silent.Main.Run(args);
+                    _ex = silentResult.Ex;
                 }
             }
             catch (CoreException ex)
@@ -60,17 +62,31 @@ namespace Launcher
                     }
                     else
                     {
-                        WriteMsg("[CODE]: " + (int)_ex.Code + $" ({_ex.Code})", MsgType.Error);
-                        WriteMsg("[DESCRIPTION]: " + _ex.Message, MsgType.Error);
+                        WriteColor(
+                            "[ERROR]: " + (int)_ex.Code + $" ({_ex.Code})",
+                            ConsoleColor.Red
+                        );
+                        WriteColor("[DESCRIPTION]: " + _ex.Message, ConsoleColor.Red);
+                        WriteColor("[DETAILS]:", ConsoleColor.Blue);
+                        if (silentResult.Errors?.Count > 0)
+                        {
+                            int c = 1;
+                            foreach (var err in silentResult.Errors)
+                            {
+                                Console.Write($"[{c}] ");
+                                WriteColor(err, ConsoleColor.Red);
+                                c++;
+                            }
+                        }
                         if (_ex.InnerException != null)
                         {
-                            WriteMsg(
+                            WriteColor(
                                 "[INNER MESSAGE]:\n" + _ex.InnerException.Message,
-                                MsgType.Error
+                                ConsoleColor.Red
                             );
-                            WriteMsg(
+                            WriteColor(
                                 "[INNER STACK TRACE]:\n" + _ex.InnerException.StackTrace,
-                                MsgType.Error
+                                ConsoleColor.Red
                             );
                         }
                     }

@@ -16,7 +16,7 @@ namespace Core
         public bool filesOnly { get; set; } = false;
         public int maxDepth { get; set; } = int.MaxValue;
         public bool ignoreEmptyDirs { get; set; } = false;
-        public bool ignoreSymLinks { get; set; } = false;
+        public bool ignoreSymlinks { get; set; } = false;
         public bool includeStatistics { get; set; } = true;
         public bool formatReport { get; set; } = true;
         public bool includeIcons { get; set; } = true;

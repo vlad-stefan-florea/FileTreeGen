@@ -11,196 +11,150 @@ namespace Silent
     {
         static GenFlags _flags = new GenFlags();
 
-        public static async Task Run(string[] args)
+        public static async Task<(CoreException, List<string>)> Run(string[] args)
         {
-            // COMMANDS CONFIG
+            List<string> errorsOut = new();
+            CoreException exOut = new(ExitCode.Success, ExitMessages.Get(ExitCode.Success));
             // root
             RootCommand rootCmd = new("FileTreeGen - a simple and efficient file tree generator.");
 
             // target
-            Argument<DirectoryInfo> targetArg = new("target")
-            {
-                Description = "The target directory to scan.",
-            };
+            var data = CommandData.Arguments["target"];
+            Argument<DirectoryInfo> targetArg = new(data.Name) { Description = data.Description };
             targetArg.AcceptExistingOnly();
             rootCmd.Arguments.Add(targetArg);
 
+            #region OPTIONS
+
+            #region Report
+
             // report type
-            Option<ReportType> repTypeOption = new("--type")
-            {
-                Aliases = { "-t" },
-                Description = "The type of the generated report.",
-                DefaultValueFactory = parseResult => _flags.reportType,
-            };
+            var repTypeOption = Commands.GenerateOption<ReportType>(
+                "reportType",
+                _flags.reportType
+            );
             rootCmd.Options.Add(repTypeOption);
-
-            // output dir
-            Option<DirectoryInfo> outOption = new("--out-dir")
-            {
-                Aliases = { "-o" },
-                Description = "The directory where the report will be saved.",
-                DefaultValueFactory = parseResult => new DirectoryInfo(_flags.outDir),
-            };
-            outOption.AcceptExistingOnly();
-            rootCmd.Options.Add(outOption);
-
-            // buffer size
-            Option<BufferSize> bufferOption = new("--buffer")
-            {
-                Description = "The buffer size used while writing the report.",
-                DefaultValueFactory = parseResult => _flags.bufferSize,
-            };
-            rootCmd.Options.Add(bufferOption);
-
             // report name scheme
-            Option<ReportNameScheme> reportNameOption = new("--report-name")
-            {
-                Description = "The report's naming scheme.",
-                DefaultValueFactory = parseResult => _flags.reportNameScheme,
-            };
+            var reportNameOption = Commands.GenerateOption("reportName", _flags.reportNameScheme);
             rootCmd.Options.Add(reportNameOption);
-
-            // node label
-            Option<NodeLabel> nodeLabelOption = new("--node-label")
-            {
-                Description = "The label type used for nodes.",
-                DefaultValueFactory = parseResult => _flags.nodeLabel,
-            };
-            rootCmd.Options.Add(nodeLabelOption);
-
-            // whitelist
-            Option<string> whitelistOption = new("--whitelist")
-            {
-                Aliases = { "--include" },
-                Description = "The only extensions to include in the report.",
-                DefaultValueFactory = parseResult => string.Empty,
-            };
-            rootCmd.Options.Add(whitelistOption);
-
-            // blacklist
-            Option<string> blacklistOption = new("--blacklist")
-            {
-                Aliases = { "--exclude" },
-                Description = "The extensions to exclude from the report.",
-                DefaultValueFactory = parseResult => string.Empty,
-            };
-            rootCmd.Options.Add(blacklistOption);
-
-            // dirs only
-            Option<bool> dirsOnlyOption = new("--dirs-only")
-            {
-                Description = "Include only directories in the report.",
-                DefaultValueFactory = parseResult => _flags.dirsOnly,
-            };
-            rootCmd.Options.Add(dirsOnlyOption);
-
-            // files only
-            Option<bool> filesOnlyOption = new("--files-only")
-            {
-                Description = "Include only files in the report.",
-                DefaultValueFactory = parseResult => _flags.filesOnly,
-            };
-            rootCmd.Options.Add(filesOnlyOption);
-
-            // max depth
-            Option<int> maxDepthOption = new("--max-depth")
-            {
-                Aliases = { "--depth" },
-                Description = "The maximum search depth.",
-                DefaultValueFactory = parseResult => _flags.maxDepth,
-            };
-            rootCmd.Options.Add(maxDepthOption);
-
-            // ignore empty dirs
-            Option<bool> emptyDirsOption = new("--ignore-empty-dirs")
-            {
-                Description = "Include only files in the report.",
-                DefaultValueFactory = parseResult => _flags.ignoreEmptyDirs,
-            };
-            rootCmd.Options.Add(emptyDirsOption);
-
-            // ignore symlinks
-            Option<bool> symlinksOption = new("--ignore-symlinks")
-            {
-                Description = "Exclude symlink entries from the report.",
-                DefaultValueFactory = parseResult => _flags.ignoreSymLinks,
-            };
-            rootCmd.Options.Add(symlinksOption);
-
-            // include statistics
-            Option<bool> noStatsOption = new("--no-stats")
-            // includeStatistics = !value(excludeStatsOption)
-            {
-                Description = "Do not include statistics in the generated report.",
-                DefaultValueFactory = parseResult => !_flags.includeStatistics,
-            };
-            rootCmd.Options.Add(noStatsOption);
-
-            // report formatting
-            Option<bool> noFormattingOption = new("--no-formatting")
-            // formatReport = !value(noFormattingOption)
-            {
-                Description = "Do not use type specific formatting for the generated report.",
-                DefaultValueFactory = parseResult => !_flags.formatReport,
-            };
-            rootCmd.Options.Add(noFormattingOption);
-
-            // include icons
-            Option<bool> noIconsOption = new("--no-icons")
-            // includeIcons = !value(noIconsOption)
-            {
-                Description = "Do not use file type icons in the generated report.",
-                DefaultValueFactory = parseResult => !_flags.includeIcons,
-            };
-            rootCmd.Options.Add(noIconsOption);
-
-            // auto open report
-            Option<bool> autoOpenOption = new("--auto-open")
-            {
-                Aliases = { "--open" },
-                Description = "Automatically open the report after generation.",
-                DefaultValueFactory = parseResult => _flags.autoOpenReport,
-            };
-            rootCmd.Options.Add(autoOpenOption);
-
             // tree only
-            Option<bool> treeOnlyOption = new("--tree-only")
-            {
-                Description = "The report includes just the file tree.",
-                DefaultValueFactory = parseResult => _flags.treeOnly,
-            };
+            var treeOnlyOption = Commands.GenerateOption("treeOnly", _flags.treeOnly);
             rootCmd.Options.Add(treeOnlyOption);
 
-            // PARSING
-            rootCmd.SetAction(async result =>
+            #endregion
+            #region Filtering
+
+            // whitelist
+            var whitelistOption = Commands.GenerateOption("whitelist", string.Empty);
+            rootCmd.Options.Add(whitelistOption);
+            // blacklist
+            var blacklistOption = Commands.GenerateOption("blacklist", string.Empty);
+            rootCmd.Options.Add(blacklistOption);
+            // dirs only
+            var dirsOnlyOption = Commands.GenerateOption("dirsOnly", _flags.dirsOnly);
+            rootCmd.Options.Add(dirsOnlyOption);
+            // files only
+            var filesOnlyOption = Commands.GenerateOption("filesOnly", _flags.filesOnly);
+            rootCmd.Options.Add(filesOnlyOption);
+
+            #endregion
+            #region Scan
+
+            // ignore empty dirs
+            var emptyDirsOption = Commands.GenerateOption(
+                "ignoreEmptyDirs",
+                _flags.ignoreEmptyDirs
+            );
+            rootCmd.Options.Add(emptyDirsOption);
+            // ignore symlinks
+            var symlinksOption = Commands.GenerateOption("ignoreSymlinks", _flags.ignoreSymlinks);
+            rootCmd.Options.Add(symlinksOption);
+            // buffer size
+            var bufferOption = Commands.GenerateOption("buffer", _flags.bufferSize);
+            rootCmd.Options.Add(bufferOption);
+            // max depth
+            var maxDepthOption = Commands.GenerateOption("maxDepth", _flags.maxDepth);
+            maxDepthOption.Validators.Add(result =>
             {
+                int value = result.GetValue(maxDepthOption);
+                if (value < 1 || value > int.MaxValue)
+                    result.AddError(
+                        "The maximum scan depth can be any number from 1 to " + int.MaxValue + '.'
+                    );
+            });
+            rootCmd.Options.Add(maxDepthOption);
+
+            #endregion
+            #region Presentation
+
+            // node label
+            var nodeLabelOption = Commands.GenerateOption("nodeLabel", _flags.nodeLabel);
+            rootCmd.Options.Add(nodeLabelOption);
+            // include statistics
+            var noStatsOption = Commands.GenerateOption("noStats", !_flags.includeStatistics);
+            rootCmd.Options.Add(noStatsOption);
+            // report formatting
+            var noFormattingOption = Commands.GenerateOption("noFormatting", !_flags.formatReport);
+            rootCmd.Options.Add(noFormattingOption);
+            // include icons
+            var noIconsOption = Commands.GenerateOption("noIcons", !_flags.includeIcons);
+            rootCmd.Options.Add(noIconsOption);
+
+            #endregion
+            #region Output
+
+            // output dir
+            var outOption = Commands.GenerateOption("outDir", new DirectoryInfo(_flags.outDir));
+            outOption.AcceptExistingOnly();
+            rootCmd.Options.Add(outOption);
+            // auto open report
+            var autoOpenOption = Commands.GenerateOption("autoOpen", _flags.autoOpenReport);
+            rootCmd.Options.Add(autoOpenOption);
+            #endregion
+
+            #endregion
+
+            // PARSING
+            ParseResult parseResult = rootCmd.Parse(args);
+            if (parseResult.Errors.Count > 0)
+            {
+                var errors = parseResult.Errors;
+                foreach (var e in errors)
+                    errorsOut.Add(e.Message);
+                exOut = new CoreException(
+                    ExitCode.InvalidArgument,
+                    ExitMessages.Get(ExitCode.InvalidArgument)
+                );
+            }
+            else
+            {
+                ApplyArgs(parseResult);
                 try
                 {
-                    ApplyArgs(result);
                     ValidateFlags();
                     await Generate();
-                    if (_flags.autoOpenReport)
-                        FileSystem.OpenPath(
-                            ReportInfo.GeneratePath(
-                                _flags.outDir,
-                                _flags.targetDir,
-                                _flags.reportType,
-                                _flags.reportNameScheme
-                            )
-                        );
-                    return 0;
                 }
-                catch (CoreException ex)
+                catch (CoreException cex)
                 {
-                    WriteMsg(ex.Message, MsgType.Error);
-                    return (int)ex.Code;
+                    return (cex, errorsOut);
                 }
-            });
+                catch (Exception ex)
+                {
+                    return (ExitMessages.TranslateOSException(ex), errorsOut);
+                }
+                if (_flags.autoOpenReport)
+                    FileSystem.OpenPath(
+                        ReportInfo.GeneratePath(
+                            _flags.outDir,
+                            _flags.targetDir,
+                            _flags.reportType,
+                            _flags.reportNameScheme
+                        )
+                    );
+            }
+            return (exOut, errorsOut);
 
-            ParseResult parseResult = rootCmd.Parse(args);
-            await parseResult.InvokeAsync();
-
-            // HELPERS
+            #region HELPERS
             void ApplyArgs(ParseResult result)
             {
                 // TARGET DIR
@@ -247,12 +201,7 @@ namespace Silent
 
                 // MAX DEPTH
                 if (result.GetValue(maxDepthOption) is int maxDepth)
-                {
-                    if (maxDepth < 1 || maxDepth > int.MaxValue)
-                        ThrowInvalid("max depth", "any value from 1 to " + int.MaxValue);
-                    else
-                        _flags.maxDepth = maxDepth;
-                }
+                    _flags.maxDepth = maxDepth;
 
                 // IGNORE EMPTY DIRS
                 if (result.GetValue(emptyDirsOption) is bool ignoreEmpty)
@@ -260,7 +209,7 @@ namespace Silent
 
                 // SYMLINKS
                 if (result.GetValue(symlinksOption) is bool ignoreSymlinks)
-                    _flags.ignoreSymLinks = ignoreSymlinks;
+                    _flags.ignoreSymlinks = ignoreSymlinks;
 
                 // NO STATISTICS
                 if (result.GetValue(noStatsOption) is bool noStats)
@@ -289,27 +238,34 @@ namespace Silent
                     ignoreEmptyDirs = _flags.ignoreEmptyDirs,
                     byWhitelist = _flags.extWhitelist.Any(),
                     byBlacklist = _flags.extBlacklist.Any(),
-                    dontFormat = !_flags.formatReport;
+                    dontFormat = !_flags.formatReport,
+                    treeOnly = _flags.treeOnly,
+                    includeStats = _flags.includeStatistics;
 
                 if (byWhitelist && byBlacklist)
-                    ThrowIncompatible("filter by whitelist", "filter by blacklist");
+                    ThrowIncompatible("Whitelist", "Blacklist");
+                if (byWhitelist && onlyDirs)
+                    ThrowIncompatible("Whitelist", "Dirs Only");
+                if (byBlacklist && onlyDirs)
+                    ThrowIncompatible("Blacklist", "Dirs Only");
                 if (onlyFiles && onlyDirs)
-                    ThrowIncompatible("files only", "dirs only");
+                    ThrowIncompatible("Files Only", "Dirs Only");
                 if (onlyFiles && ignoreEmptyDirs)
-                    ThrowIncompatible("files only", "ignore empty dirs");
+                    ThrowIncompatible("Files Only", "Ignore Empty Dirs");
                 if (_flags.reportType == ReportType.HTML && dontFormat)
-                    ThrowIncompatible("HTML report type", "no report formatting");
+                    ThrowIncompatible("HTML Report", "No Report Formatting");
+                if (treeOnly && includeStats) // treeOnly has priority
+                    _flags.includeStatistics = false;
             }
-            void ThrowIncompatible(string arg1, string arg2) =>
+            void ThrowIncompatible(string arg1, string arg2)
+            {
+                errorsOut.Add($"'{arg1}' and '{arg2}' cannot be used simultaneously.");
                 throw new CoreException(
                     ExitCode.IncompatibleArguments,
-                    ExitMessages.Get(ExitCode.IncompatibleArguments) + $" ('{arg1}' & '{arg2}')"
+                    ExitMessages.Get(ExitCode.IncompatibleArguments)
                 );
-            void ThrowInvalid(string arg, string? msg) =>
-                throw new CoreException(
-                    ExitCode.InvalidArgument,
-                    ExitMessages.Get(ExitCode.InvalidArgument) + $" ('{arg}')" + (msg ?? ": " + msg)
-                );
+            }
+            #endregion
         }
 
         private static async Task Generate()

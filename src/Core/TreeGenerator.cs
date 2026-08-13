@@ -44,14 +44,16 @@ namespace Core
             {
                 throw new CoreException(
                     ExitCode.TargetAccessDenied,
-                    ExitMessages.Get(ExitCode.TargetAccessDenied)
+                    ExitMessages.Get(ExitCode.TargetAccessDenied),
+                    ex
                 );
             }
             catch (DirectoryNotFoundException ex)
             {
                 throw new CoreException(
                     ExitCode.TargetNotFound,
-                    ExitMessages.Get(ExitCode.TargetNotFound)
+                    ExitMessages.Get(ExitCode.TargetNotFound),
+                    ex
                 );
             }
         }
@@ -113,7 +115,7 @@ namespace Core
             if (subDirs != null)
                 foreach (var subDir in subDirs)
                 {
-                    if (FileSystem.IsReparsePoint(subDir.FullName) && !_flags.ignoreSymLinks)
+                    if (FileSystem.IsReparsePoint(subDir.FullName) && !_flags.ignoreSymlinks)
                     {
                         if (_flags.includeStatistics)
                             stats.skippedFolders++;

@@ -68,5 +68,12 @@
             GB,
             TB,
         }
+
+        public enum Verbosity
+        {
+            Quiet,
+            Normal,
+            Verbose,
+        }
     }
 }

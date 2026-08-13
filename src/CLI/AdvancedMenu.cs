@@ -122,7 +122,7 @@ namespace CLI
                             );
 
                             list = "UPDATED WHITELIST CONTENTS:";
-                            foreach (string ext in oldFlags.extBlacklist)
+                            foreach (string ext in oldFlags.extWhitelist)
                                 list += string.IsNullOrEmpty(ext) ? " \"\";" : $" {ext};";
                             WriteMsg(list, MsgType.Save);
                         }
@@ -183,10 +183,14 @@ namespace CLI
                             oldFlags.formatReport
                         );
                         if (oldFlags.reportType == ReportType.HTML && !oldFlags.formatReport)
+                        {
                             WriteMsg(
                                 "Cannot generate a non-formatted HTML report. The 'format report' option has been set to 'true'.",
                                 MsgType.Warning
                             );
+                            oldFlags.formatReport = true;
+                            WriteMsg("Updated value: " + oldFlags.formatReport, MsgType.Save);
+                        }
                         break;
 
                     case CliAdvancedOptions.Include_Statistics:
@@ -242,9 +246,9 @@ namespace CLI
                         break;
 
                     case CliAdvancedOptions.Ignore_SymLinks:
-                        oldFlags.ignoreSymLinks = InputHandler.AskForSwitch(
+                        oldFlags.ignoreSymlinks = InputHandler.AskForSwitch(
                             "Exclude all symlinks from the report?",
-                            oldFlags.ignoreSymLinks
+                            oldFlags.ignoreSymlinks
                         );
                         break;
 
