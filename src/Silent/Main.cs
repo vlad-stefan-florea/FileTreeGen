@@ -2,7 +2,6 @@
 using Core;
 using Core.Utils;
 using Core.Writers;
-using static CLI.Display;
 using static Core.Settings;
 
 namespace Silent
@@ -236,8 +235,8 @@ namespace Silent
                 bool onlyFiles = _flags.filesOnly,
                     onlyDirs = _flags.dirsOnly,
                     ignoreEmptyDirs = _flags.ignoreEmptyDirs,
-                    byWhitelist = _flags.extWhitelist.Any(),
-                    byBlacklist = _flags.extBlacklist.Any(),
+                    byWhitelist = _flags.extWhitelist.Count > 0,
+                    byBlacklist = _flags.extBlacklist.Count > 0,
                     dontFormat = !_flags.formatReport,
                     treeOnly = _flags.treeOnly,
                     includeStats = _flags.includeStatistics;
@@ -254,6 +253,8 @@ namespace Silent
                     ThrowIncompatible("Files Only", "Ignore Empty Dirs");
                 if (_flags.reportType == ReportType.HTML && dontFormat)
                     ThrowIncompatible("HTML Report", "No Report Formatting");
+                if (dontFormat && _flags.includeIcons)
+                    _flags.includeIcons = false; // no icons are used if 'no formatting' is active
                 if (treeOnly && includeStats) // treeOnly has priority
                     _flags.includeStatistics = false;
             }

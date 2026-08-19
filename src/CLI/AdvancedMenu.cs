@@ -8,14 +8,9 @@ namespace CLI
     {
         public static GenFlags Edit(GenFlags oldFlags)
         {
-            int maxPrompts = 10,
-                currentPrompt = 0;
             bool back = false;
             while (!back)
             {
-                currentPrompt++;
-                if (currentPrompt % maxPrompts == 0)
-                    Console.Clear();
                 CliAdvancedOptions? option = InputHandler.ChoiceMenu<CliAdvancedOptions>(
                     "Choose an advanced option to edit"
                 );
@@ -24,139 +19,137 @@ namespace CLI
                     back = true;
                     continue;
                 }
+
                 switch (option)
                 {
                     case CliAdvancedOptions.Auto_Open_Report:
+                    {
                         oldFlags.autoOpenReport = InputHandler.AskForSwitch(
                             "Automatically open the report after generation?",
                             oldFlags.autoOpenReport
                         );
                         break;
+                    }
 
                     case CliAdvancedOptions.Buffer_Size:
+                    {
                         oldFlags.bufferSize =
                             (InputHandler.ChoiceMenu<BufferSize>("Please choose the buffer size:"))
                             ?? oldFlags.bufferSize;
                         break;
+                    }
 
                     case CliAdvancedOptions.Directories_Only:
-                        if (oldFlags.filesOnly)
+                    {
+                        bool newValue = InputHandler.AskForSwitch(
+                            "Include ONLY FOLDERS in the generated report?",
+                            oldFlags.dirsOnly
+                        );
+                        var change = TryApplyChange(oldFlags =>
                         {
-                            WriteMsg(
-                                "Cannot activate the option 'directories only' while 'files only' is active.",
-                                MsgType.Warning
-                            );
+                            oldFlags.dirsOnly = newValue;
+                        });
+                        if (!change.IsValid)
+                        {
+                            WriteMsg(change.Message, MsgType.Warning);
+                            break;
                         }
-                        else
-                            oldFlags.dirsOnly = InputHandler.AskForSwitch(
-                                "Include ONLY FOLDERS in the generated report?",
-                                oldFlags.dirsOnly
-                            );
+                        oldFlags.dirsOnly = newValue;
                         break;
+                    }
 
                     case CliAdvancedOptions.Extensions_Blacklist:
-                        if (oldFlags.dirsOnly)
+                    {
+                        var change = TryApplyChange(oldFlags =>
                         {
-                            WriteMsg(
-                                "Cannot edit the blacklist while 'directories only' is active.",
-                                MsgType.Warning
-                            );
-                        }
-                        else if (oldFlags.extWhitelist.Any())
+                            oldFlags.extBlacklist = ["<placeholder>"]; // simulate non-empty blacklist
+                        });
+                        if (!change.IsValid)
                         {
-                            WriteMsg(
-                                "Cannot edit the blacklist while filtering by 'whitelist'.",
-                                MsgType.Warning
-                            );
-                            WriteMsg(
-                                "To clear a list, type in the keyword '--clear' instead of extensions.",
-                                MsgType.Info
-                            );
+                            WriteMsg(change.Message, MsgType.Warning);
+                            break;
                         }
-                        else
-                        {
-                            string list = "CURRENT BLACKLIST CONTENTS:";
-                            foreach (string ext in oldFlags.extBlacklist)
-                                list += $" {ext};";
-                            WriteMsg(list, MsgType.Info);
-                            oldFlags.extBlacklist = InputHandler.AskForExtensions(
-                                "Please write the blacklisted extensions",
-                                oldFlags.extBlacklist
-                            );
-                            list = "UPDATED BLACKLIST CONTENTS:";
-                            foreach (string ext in oldFlags.extBlacklist)
-                                list += string.IsNullOrEmpty(ext) ? " \"\";" : $" {ext};";
-                            WriteMsg(list, MsgType.Save);
-                        }
+
+                        string list = "CURRENT BLACKLIST CONTENTS:";
+                        foreach (string ext in oldFlags.extBlacklist)
+                            list += $" {ext};";
+                        WriteMsg(list, MsgType.Info);
+                        oldFlags.extBlacklist = InputHandler.AskForExtensions(
+                            "Please write the blacklisted extensions",
+                            oldFlags.extBlacklist
+                        );
+                        list = "UPDATED BLACKLIST CONTENTS:";
+                        foreach (string ext in oldFlags.extBlacklist)
+                            list += string.IsNullOrEmpty(ext) ? " \"\";" : $" {ext};";
+                        WriteMsg(list, MsgType.Save);
                         break;
+                    }
 
                     case CliAdvancedOptions.Extensions_Whitelist:
-                        if (oldFlags.dirsOnly)
+                    {
+                        var change = TryApplyChange(oldFlags =>
                         {
-                            WriteMsg(
-                                "Cannot edit the whitelist while 'directories only' is active.",
-                                MsgType.Warning
-                            );
+                            oldFlags.extWhitelist = ["<placeholder>"]; // simulate non-empty whitelist
+                        });
+                        if (!change.IsValid)
+                        {
+                            WriteMsg(change.Message, MsgType.Warning);
+                            break;
                         }
-                        else if (oldFlags.extBlacklist.Any())
-                        {
-                            WriteMsg(
-                                "Cannot edit the whitelist while filtering by 'blacklist'.",
-                                MsgType.Warning
-                            );
-                            WriteMsg(
-                                "To clear a list, type in the keyword '--clear' instead of extensions.",
-                                MsgType.Info
-                            );
-                        }
-                        else
-                        {
-                            string list = "CURRENT WHITELIST CONTENTS:";
-                            foreach (string ext in oldFlags.extWhitelist)
-                                list += $" {ext};";
-                            WriteMsg(list, MsgType.Info);
 
-                            oldFlags.extWhitelist = InputHandler.AskForExtensions(
-                                "Please write the whitelisted extensions",
-                                oldFlags.extWhitelist
-                            );
+                        string list = "CURRENT WHITELIST CONTENTS:";
+                        foreach (string ext in oldFlags.extWhitelist)
+                            list += $" {ext};";
+                        WriteMsg(list, MsgType.Info);
 
-                            list = "UPDATED WHITELIST CONTENTS:";
-                            foreach (string ext in oldFlags.extWhitelist)
-                                list += string.IsNullOrEmpty(ext) ? " \"\";" : $" {ext};";
-                            WriteMsg(list, MsgType.Save);
-                        }
+                        oldFlags.extWhitelist = InputHandler.AskForExtensions(
+                            "Please write the whitelisted extensions",
+                            oldFlags.extWhitelist
+                        );
+                        list = "UPDATED WHITELIST CONTENTS:";
+                        foreach (string ext in oldFlags.extWhitelist)
+                            list += string.IsNullOrEmpty(ext) ? " \"\";" : $" {ext};";
+                        WriteMsg(list, MsgType.Save);
                         break;
+                    }
 
                     case CliAdvancedOptions.Files_Only:
-                        if (oldFlags.filesOnly)
+                    {
+                        bool newValue = InputHandler.AskForSwitch(
+                            "Include ONLY FILES in the generated report?",
+                            oldFlags.filesOnly
+                        );
+                        var change = TryApplyChange(oldFlags =>
                         {
-                            WriteMsg(
-                                "Cannot activate the option 'files only' while 'directories only' is active.",
-                                MsgType.Warning
-                            );
+                            oldFlags.filesOnly = newValue;
+                        });
+                        if (!change.IsValid)
+                        {
+                            WriteMsg(change.Message, MsgType.Warning);
+                            break;
                         }
-                        else
-                            oldFlags.filesOnly = InputHandler.AskForSwitch(
-                                "Include ONLY FILES in the generated report?",
-                                oldFlags.filesOnly
-                            );
+                        oldFlags.filesOnly = newValue;
                         break;
+                    }
 
                     case CliAdvancedOptions.Ignore_Empty_Directories:
-                        if (oldFlags.filesOnly)
+                    {
+                        bool newValue = InputHandler.AskForSwitch(
+                            "Exclude all empty folders from the report?",
+                            oldFlags.ignoreEmptyDirs
+                        );
+                        var change = TryApplyChange(oldFlags =>
                         {
-                            WriteMsg(
-                                "Cannot activate the option 'ignore empty directories' while 'files only' is active.",
-                                MsgType.Warning
-                            );
+                            oldFlags.ignoreEmptyDirs = newValue;
+                        });
+                        if (!change.IsValid)
+                        {
+                            WriteMsg(change.Message, MsgType.Warning);
+                            break;
                         }
-                        else
-                            oldFlags.ignoreEmptyDirs = InputHandler.AskForSwitch(
-                                "Exclude all empty folders from the report?",
-                                oldFlags.ignoreEmptyDirs
-                            );
+                        oldFlags.ignoreEmptyDirs = newValue;
                         break;
+                    }
 
                     case CliAdvancedOptions.Max_Search_Depth:
                         oldFlags.maxDepth = InputHandler.AskForInt(
@@ -171,42 +164,69 @@ namespace CLI
                         break;
 
                     case CliAdvancedOptions.Include_Icons:
-                        oldFlags.includeIcons = InputHandler.AskForSwitch(
+                    {
+                        bool newValue = InputHandler.AskForSwitch(
                             "Include icons in the generated report?",
                             oldFlags.includeIcons
                         );
+                        var change = TryApplyChange(oldFlags =>
+                        {
+                            oldFlags.includeIcons = newValue;
+                        });
+                        if (!change.IsValid)
+                        {
+                            WriteMsg(change.Message, MsgType.Warning);
+                            break;
+                        }
+                        oldFlags.includeIcons = newValue;
                         break;
+                    }
 
                     case CliAdvancedOptions.Format_Report:
-                        oldFlags.formatReport = InputHandler.AskForSwitch(
+                    {
+                        bool newValue = InputHandler.AskForSwitch(
                             "If the report should be formatted based on the output type or just a plain text list.",
                             oldFlags.formatReport
                         );
-                        if (oldFlags.reportType == ReportType.HTML && !oldFlags.formatReport)
+                        var change = TryApplyChange(oldFlags =>
                         {
+                            oldFlags.includeIcons = newValue;
+                        });
+                        if (!change.IsValid)
+                        {
+                            WriteMsg(change.Message, MsgType.Warning);
+                            break;
+                        }
+                        oldFlags.formatReport = newValue;
+                        if (!newValue)
+                        {
+                            oldFlags.includeIcons = false;
                             WriteMsg(
-                                "Cannot generate a non-formatted HTML report. The 'format report' option has been set to 'true'.",
+                                "The 'Include Icons' option was turned off automatically.",
                                 MsgType.Warning
                             );
-                            oldFlags.formatReport = true;
-                            WriteMsg("Updated value: " + oldFlags.formatReport, MsgType.Save);
                         }
                         break;
+                    }
 
                     case CliAdvancedOptions.Include_Statistics:
-                        if (oldFlags.treeOnly)
+                    {
+                        bool newValue = InputHandler.AskForSwitch(
+                            "Include statistics in the generated report?",
+                            oldFlags.includeStatistics
+                        );
+                        var change = TryApplyChange(oldFlags =>
                         {
-                            WriteMsg(
-                                "Cannot include statistics in the report when 'tree only' is active.",
-                                MsgType.Warning
-                            );
+                            oldFlags.includeStatistics = newValue;
+                        });
+                        if (!change.IsValid)
+                        {
+                            WriteMsg(change.Message, MsgType.Warning);
+                            break;
                         }
-                        else
-                            oldFlags.includeStatistics = InputHandler.AskForSwitch(
-                                "Include statistics in the generated report?",
-                                oldFlags.includeStatistics
-                            );
+                        oldFlags.includeStatistics = newValue;
                         break;
+                    }
 
                     case CliAdvancedOptions.Output_Directory:
                         oldFlags.outDir = InputHandler.AskForDir();
@@ -231,19 +251,21 @@ namespace CLI
                         break;
 
                     case CliAdvancedOptions.Tree_Only:
-                        oldFlags.treeOnly = InputHandler.AskForSwitch(
-                            "Include statistics in the generated report?",
+                    {
+                        bool newValue = InputHandler.AskForSwitch(
+                            "Include just the tree in the generated report?",
                             oldFlags.treeOnly
                         );
-                        if (oldFlags.treeOnly && oldFlags.includeStatistics)
+                        if (oldFlags.includeStatistics)
                         {
                             oldFlags.includeStatistics = false;
                             WriteMsg(
-                                "The 'include statistics' is incompatible with 'tree only' and has been turned off.",
+                                "The 'Include Statistics' option was turned off automatically.",
                                 MsgType.Warning
                             );
                         }
                         break;
+                    }
 
                     case CliAdvancedOptions.Ignore_SymLinks:
                         oldFlags.ignoreSymlinks = InputHandler.AskForSwitch(
@@ -258,6 +280,69 @@ namespace CLI
                 }
             }
             return oldFlags; // I didn't want to create a copy, that's why i kept it as 'old' flags :3
+
+            // flags validation
+            (bool IsValid, string Message) TryApplyChange(Action<GenFlags> Change)
+            {
+                bool IsValid = true;
+                string Message = string.Empty;
+                GenFlags Candidate = new(oldFlags);
+                Change(Candidate);
+
+                bool onlyFiles = Candidate.filesOnly,
+                    onlyDirs = Candidate.dirsOnly,
+                    ignoreEmptyDirs = Candidate.ignoreEmptyDirs,
+                    byWhitelist = Candidate.extWhitelist.Count > 0,
+                    byBlacklist = Candidate.extBlacklist.Count > 0,
+                    dontFormat = !Candidate.formatReport,
+                    treeOnly = Candidate.treeOnly,
+                    includeStats = Candidate.includeStatistics,
+                    useIcons = Candidate.includeIcons;
+
+                if (onlyFiles && onlyDirs)
+                {
+                    IsValid = false;
+                    Message =
+                        "The options 'Directories Only' and 'Files Only' cannot be used simultaneously.";
+                }
+                if (byWhitelist && byBlacklist)
+                {
+                    IsValid = false;
+                    Message = "Cannot filter by 'Whitelist' and 'Blacklist' simultaneously.";
+                }
+                if (byWhitelist && onlyDirs)
+                {
+                    IsValid = false;
+                    Message = "Cannot filter by Whitelist while 'Directories Only' is active.";
+                }
+                if (byBlacklist && onlyDirs)
+                {
+                    IsValid = false;
+                    Message = "Cannot filter by Blacklist while 'Directories Only' is active.";
+                }
+                if (onlyFiles && ignoreEmptyDirs)
+                {
+                    IsValid = false;
+                    Message =
+                        "Cannot activate the option 'Ignore Empty Directories' while 'files only' is active.";
+                }
+                if (Candidate.reportType == ReportType.HTML && dontFormat) // not really an issue, mostly for info
+                {
+                    IsValid = true;
+                    Message = "The 'Format Report' option has no effect on HTML reports.";
+                }
+                if (dontFormat && useIcons)
+                {
+                    IsValid = false;
+                    Message = "Cannot include icons while 'No Report Formatting' is active.";
+                }
+                if (treeOnly && includeStats)
+                {
+                    IsValid = false;
+                    Message = "Cannot include statistics in the report when 'Tree Only' is active.";
+                }
+                return (IsValid, Message);
+            }
         }
     }
 }

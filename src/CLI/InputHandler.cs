@@ -148,18 +148,6 @@ namespace CLI
             HashSet<string> currentExtensions
         )
         {
-            void DisplayHelp()
-            {
-                WriteMsg(
-                    "Please write the extensions as in the following examples:"
-                        + "\n\t- For simple extensions: .txt;.docx;.html;.exe"
-                        + "\n\t- For no/empty extensions, use '\"\"' OR 'none'"
-                        + "\n\t- The separator characters can be either ';' or ','"
-                        + "\n\t- Extensions starting with '.' is optional"
-                        + "\n\t- Use '--clear' to clear the list",
-                    MsgType.Info
-                );
-            }
             string? ans = string.Empty;
             while (true)
             {
@@ -168,7 +156,7 @@ namespace CLI
                 if (string.IsNullOrEmpty(ans))
                 {
                     WriteMsg("Operation canceled", MsgType.Warning);
-                    DisplayHelp();
+
                     return currentExtensions;
                 }
                 else
@@ -176,14 +164,10 @@ namespace CLI
                     if (ans.Contains("--clear"))
                         return new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                     var result = Core.Utils.ListParser.ParseExtensionList(ans);
-                    if (result.Any())
+                    if (result.Count > 0)
                     {
                         currentExtensions.UnionWith(result);
                         return currentExtensions;
-                    }
-                    else
-                    {
-                        DisplayHelp();
                     }
                 }
             }
@@ -195,7 +179,6 @@ namespace CLI
                 currentValue = true;
             else
                 currentValue = false;
-            WriteMsg("Updated value: " + currentValue, MsgType.Save);
             return currentValue;
         }
 

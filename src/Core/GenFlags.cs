@@ -4,6 +4,9 @@ namespace Core
 {
     public class GenFlags
     {
+        // constructor
+        public GenFlags() { }
+
         public string targetDir { get; set; } = string.Empty;
         public ReportType reportType { get; set; } = ReportType.HTML;
         public string outDir { get; set; } = downloadsDir;
@@ -28,5 +31,30 @@ namespace Core
                 Environment.SpecialFolder.UserProfile
             ),
             downloadsDir = Path.Join(userprofile, "downloads");
+
+        // copy
+        public GenFlags(GenFlags Base)
+        {
+            targetDir = Base.targetDir;
+            reportType = Base.reportType;
+            outDir = Base.outDir;
+            bufferSize = Base.bufferSize;
+            reportNameScheme = Base.reportNameScheme;
+            nodeLabel = Base.nodeLabel;
+
+            extWhitelist = new HashSet<string>(Base.extWhitelist, StringComparer.OrdinalIgnoreCase);
+            extBlacklist = new HashSet<string>(Base.extBlacklist, StringComparer.OrdinalIgnoreCase);
+
+            dirsOnly = Base.dirsOnly;
+            filesOnly = Base.filesOnly;
+            maxDepth = Base.maxDepth;
+            ignoreEmptyDirs = Base.ignoreEmptyDirs;
+            ignoreSymlinks = Base.ignoreSymlinks;
+            includeStatistics = Base.includeStatistics;
+            formatReport = Base.formatReport;
+            includeIcons = Base.includeIcons;
+            autoOpenReport = Base.autoOpenReport;
+            treeOnly = Base.treeOnly;
+        }
     }
 }
