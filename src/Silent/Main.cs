@@ -72,14 +72,24 @@ namespace Silent
             var bufferOption = Commands.GenerateOption("buffer", _flags.bufferSize);
             rootCmd.Options.Add(bufferOption);
             // max depth
-            var maxDepthOption = Commands.GenerateOption("maxDepth", _flags.maxDepth);
+            var maxDepthOption = Commands.GenerateOption<int>("maxDepth", _flags.maxDepth);
             maxDepthOption.Validators.Add(result =>
             {
-                int value = result.GetValue(maxDepthOption);
-                if (value < 1 || value > int.MaxValue)
-                    result.AddError(
-                        "The maximum scan depth can be any number from 1 to " + int.MaxValue + '.'
-                    );
+                string? rawValue = result.Tokens.FirstOrDefault()?.Value;
+                if (rawValue is not null)
+                {
+                    if (!int.TryParse(rawValue, out int value))
+                    {
+                        result.AddError($"The value '{rawValue}' is not a valid integer.");
+                        return;
+                    }
+                    if (value < 1)
+                    {
+                        result.AddError(
+                            $"The maximum scan depth can be any number from 1 to {int.MaxValue}."
+                        );
+                    }
+                }
             });
             rootCmd.Options.Add(maxDepthOption);
 
@@ -124,33 +134,33 @@ namespace Silent
                     ExitCode.InvalidArgument,
                     ExitMessages.Get(ExitCode.InvalidArgument)
                 );
+                return (exOut, errorsOut);
             }
-            else
+
+            ApplyArgs(parseResult);
+            try
             {
-                ApplyArgs(parseResult);
-                try
-                {
-                    ValidateFlags();
-                    await Generate();
-                }
-                catch (CoreException cex)
-                {
-                    return (cex, errorsOut);
-                }
-                catch (Exception ex)
-                {
-                    return (ExitMessages.TranslateOSException(ex), errorsOut);
-                }
-                if (_flags.autoOpenReport)
-                    FileSystem.OpenPath(
-                        ReportInfo.GeneratePath(
-                            _flags.outDir,
-                            _flags.targetDir,
-                            _flags.reportType,
-                            _flags.reportNameScheme
-                        )
-                    );
+                ValidateFlags();
+                await Generate();
             }
+            catch (CoreException cex)
+            {
+                return (cex, errorsOut);
+            }
+            catch (Exception ex)
+            {
+                return (ExitMessages.TranslateOSException(ex), errorsOut);
+            }
+            if (_flags.autoOpenReport)
+                FileSystem.OpenPath(
+                    ReportInfo.GeneratePath(
+                        _flags.outDir,
+                        _flags.targetDir,
+                        _flags.reportType,
+                        _flags.reportNameScheme
+                    )
+                );
+
             return (exOut, errorsOut);
 
             #region HELPERS

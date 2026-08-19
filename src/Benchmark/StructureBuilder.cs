@@ -1,6 +1,6 @@
 ﻿namespace Benchmark
 {
-    public class StructureBuilder
+    internal class StructureBuilder
     {
         static List<string> allDirs = new();
         static int minDirs = 2,

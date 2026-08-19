@@ -4,4 +4,5 @@
   <Project Path="Core/Core.csproj" Id="1b65f359-8cc8-46e0-aeee-10342205f21c" />
   <Project Path="Launcher/Launcher.csproj" Id="62f31121-b466-40a0-84e5-88aaf5afa8dd" />
   <Project Path="Silent/Silent.csproj" Id="b3c7a46e-7ece-4ff1-be33-70271cc701db" />
+  <Project Path="Tests/Tests.csproj" Id="c96ca25f-4c5f-44db-8763-ea47ea155664" />
 </Solution>

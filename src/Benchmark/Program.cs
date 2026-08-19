@@ -14,7 +14,7 @@ namespace Benchmark
             Console.OutputEncoding = System.Text.Encoding.UTF8;
             CoreException _ex = new(ExitCode.Success, ExitMessages.Get(ExitCode.Success));
             GenFlags flags = new GenFlags();
-            string tempPath = @"C:\ftg_tests",
+            string tempPath = Path.Combine(Path.GetTempPath(), "ftg_tests"),
                 benchmarksDir = "../../../../../benchmarks",
                 csvPath = Path.Combine(
                     benchmarksDir,
@@ -145,8 +145,10 @@ namespace Benchmark
                     }
                     WriteMsg($"DATASET '{set.Label}' FINISHED", MsgType.Success);
                 }
-                WriteMsg("Cleaning up...", MsgType.Info);
-                Directory.Delete(rootPath, true);
+                WriteMsg("Cleaning up ...", MsgType.Info);
+                if (Directory.Exists(rootPath))
+                    Directory.Delete(rootPath, true);
+                WriteMsg("Done!", MsgType.Success);
                 FileSystem.OpenPath(csvPath);
                 WriteMsg("BENCHMARK FINISHED", MsgType.Success);
             }
