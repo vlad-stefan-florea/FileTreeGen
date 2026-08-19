@@ -264,6 +264,7 @@ namespace CLI
                                 MsgType.Warning
                             );
                         }
+                        oldFlags.treeOnly = newValue;
                         break;
                     }
 
@@ -339,7 +340,8 @@ namespace CLI
                 if (treeOnly && includeStats)
                 {
                     IsValid = false;
-                    Message = "Cannot include statistics in the report when 'Tree Only' is active.";
+                    Message =
+                        "Cannot include statistics in the report while 'Tree Only' is active.";
                 }
                 return (IsValid, Message);
             }
