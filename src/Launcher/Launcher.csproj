@@ -11,7 +11,12 @@
   <PropertyGroup>
     <AssemblyName>FileTreeGen</AssemblyName>
     <AssemblyTitle>FileTreeGen</AssemblyTitle>
+    <ApplicationIcon>icon.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="icon.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\CLI\CLI.csproj" />

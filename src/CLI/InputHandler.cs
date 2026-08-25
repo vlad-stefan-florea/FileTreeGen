@@ -252,6 +252,12 @@ namespace CLI
                             selectedId = 0;
                         break;
                     }
+                    case ConsoleKey.Home:
+                        selectedId = 0;
+                        break;
+                    case ConsoleKey.End:
+                        selectedId = maxId;
+                        break;
                     default:
                         break;
                 }

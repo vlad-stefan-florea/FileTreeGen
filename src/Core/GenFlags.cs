@@ -10,7 +10,7 @@ namespace Core
         public string targetDir { get; set; } = string.Empty;
         public ReportType reportType { get; set; } = ReportType.HTML;
         public string outDir { get; set; } = downloadsDir;
-        public BufferSize bufferSize { get; set; } = BufferSize.Medium;
+        public BufferSize bufferSize { get; set; } = BufferSize.KB16;
         public ReportNameScheme reportNameScheme { get; set; } = ReportNameScheme.NameDate;
         public NodeLabel nodeLabel { get; set; } = NodeLabel.Name;
         public HashSet<string> extWhitelist { get; set; } = new(StringComparer.OrdinalIgnoreCase);

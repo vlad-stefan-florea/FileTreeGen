@@ -11,12 +11,10 @@
 
         public enum BufferSize
         {
-            Small = 1024, // 1 KB
-            Medium = 1024 * 4, // 4 KB (default)
-            Big = 1024 * 8, // 8 KB
-            Large = 1024 * 16, // 16 KB
-            ExtraLarge = 1024 * 32, // 32 KB
-            HighPerformance = 1024 * 64, // 64 KB
+            KB4 = 4 * 1024, // 4 KB (default)
+            KB16 = 16 * 1024, // 16 KB
+            KB64 = 64 * 1024, // 64 KB
+            KB256 = 256 * 1024, // 256 KB
         }
 
         public enum PrivilegeLevel
