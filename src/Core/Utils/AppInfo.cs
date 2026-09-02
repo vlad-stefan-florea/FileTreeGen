@@ -12,7 +12,8 @@ namespace Core.Utils
         static AppInfo()
         {
             var assembly = Assembly.GetExecutingAssembly();
-            Version = assembly.GetName().Version?.ToString() ?? "0.0.0.0";
+            var v = assembly.GetName().Version;
+            Version = v != null ? $"{v.Major}.{v.Minor}.{v.Build}" : "0.0.0";
         }
     }
 }

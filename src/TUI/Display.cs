@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace CLI
+namespace TUI
 {
     public class Display
     {

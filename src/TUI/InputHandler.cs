@@ -1,7 +1,7 @@
-﻿using static CLI.Display;
-using static Core.Utils.Text;
+﻿using static Core.Utils.Text;
+using static TUI.Display;
 
-namespace CLI
+namespace TUI
 {
     public class InputHandler
     {
@@ -143,31 +143,28 @@ namespace CLI
             }
         }
 
-        public static HashSet<string> AskForExtensions(
-            string prompt,
-            HashSet<string> currentExtensions
-        )
+        public static HashSet<string> AskForHashSet(string prompt, HashSet<string> currentHashSet)
         {
             string? ans = string.Empty;
             while (true)
             {
                 WriteMsg($"{prompt}", MsgType.Request);
-                ans = Console.ReadLine()?.Trim().ToLower();
+                ans = Console.ReadLine()?.Trim();
                 if (string.IsNullOrEmpty(ans))
                 {
                     WriteMsg("Operation canceled", MsgType.Warning);
-
-                    return currentExtensions;
+                    return currentHashSet;
                 }
                 else
                 {
                     if (ans.Contains("--clear"))
                         return new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                    var result = Core.Utils.ListParser.ParseExtensionList(ans);
+
+                    var result = Core.Utils.HashSetParser.FromString(ans);
                     if (result.Count > 0)
                     {
-                        currentExtensions.UnionWith(result);
-                        return currentExtensions;
+                        currentHashSet.UnionWith(result);
+                        return currentHashSet;
                     }
                 }
             }
@@ -265,7 +262,6 @@ namespace CLI
             }
 
             // return last selected value
-            WriteMsg($"Selected: '{options[selectedId]}'", MsgType.Save);
             return values[selectedId];
 
             // helper methods

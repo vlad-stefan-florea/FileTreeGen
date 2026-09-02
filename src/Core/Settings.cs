@@ -38,26 +38,6 @@
             NameDateTime, // <folder name>-yyyyMMdd-HHmmss-FileTreeGen
         }
 
-        public enum CliAdvancedOptions
-        {
-            Auto_Open_Report,
-            Buffer_Size,
-            Directories_Only,
-            Extensions_Blacklist,
-            Extensions_Whitelist,
-            Files_Only,
-            Format_Report,
-            Ignore_Empty_Directories,
-            Ignore_SymLinks,
-            Include_Icons,
-            Include_Statistics,
-            Max_Search_Depth,
-            Node_Label_Scheme,
-            Output_Directory,
-            Report_Name_Scheme,
-            Tree_Only,
-        }
-
         public enum ByteScales
         {
             Bytes,

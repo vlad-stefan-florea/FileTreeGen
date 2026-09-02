@@ -1,26 +1,22 @@
 ﻿using System.CommandLine;
+using Core;
 
-namespace Silent
+namespace CLI
 {
     public class Commands
     {
         public record Cmd(
             string Name,
             string Description,
-            string? PropertyName,
+            string FlagName,
             string[]? Aliases = null
         );
 
-        // GET helpers
-        static Cmd GetOption(string key) =>
-            Options.TryGetValue(key, out var cmd)
-                ? cmd
-                : throw new ArgumentException("Option entry not found", nameof(key));
+        public record SubCmd(string Name, string Description, string? UsageArgs = null);
 
         // GENERATE helpers
-        public static Option<T> GenerateOption<T>(string key, T defaultValue)
+        public static Option<T> NewScanOption<T>(Cmd data, T defaultValue)
         {
-            Cmd data = GetOption(key);
             var option = new Option<T>(data.Name) { Description = data.Description };
             if (defaultValue != null)
                 option.DefaultValueFactory = _ => defaultValue;
@@ -31,7 +27,12 @@ namespace Silent
             return option;
         }
 
-        static Dictionary<string, Cmd> Options = CommandData.Options,
-            Arguments = CommandData.Arguments;
+        public static Command GenerateSubcmd(SubCmd data) =>
+            new Command(data.Name, data.Description);
+
+        public static Type? GetFlagType(string flagName)
+        {
+            return typeof(GenFlags).GetProperty(flagName)?.PropertyType;
+        }
     }
 }

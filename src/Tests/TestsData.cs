@@ -2,10 +2,10 @@
 {
     internal class TestsData
     {
-        public static Dictionary<string, (string? Args, int ExpectedCode)> Basic = new()
+        public static Dictionary<string, (string? Args, int ExpectedCode)> ScanCmd = new()
         // test name, test arguments (as a single string), expected exit code
         {
-            #region GENERAL
+            #region SCAN
             ["Default"] = (null, 0),
             ["HTML"] = ("--type html", 0),
             ["Markdown"] = ("--type markdown", 0),
@@ -32,6 +32,7 @@
             ["No Icons"] = ("--no-icons", 0),
             ["Auto Open"] = ("--auto-open", 0),
             ["Tree Only"] = ("--tree-only", 0),
+            ["Directories Filter"] = ("--filter-dirs \"bin,obj\"", 0),
             #endregion
             #region EDGE CASES
             ["Max Depth (<= 0)"] = ("--max-depth -1", 200),

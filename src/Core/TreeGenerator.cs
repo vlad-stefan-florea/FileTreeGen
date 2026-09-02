@@ -82,7 +82,7 @@ namespace Core
             int newId = _currentId++;
 
             // send current folder
-            if (!_flags.filesOnly && !(_flags.ignoreEmptyDirs && folderIsEmpty))
+            if (!(_flags.ignoreEmptyDirs && folderIsEmpty))
             {
                 yield return new Node
                 {
@@ -111,47 +111,57 @@ namespace Core
             }
 
             // scan subfolders
-            IEnumerable<DirectoryInfo>? subDirs = entries?.OfType<DirectoryInfo>();
-            if (subDirs != null)
-                foreach (var subDir in subDirs)
+            if (!_flags.filesOnly)
+            {
+                IEnumerable<DirectoryInfo>? subDirs = entries?.OfType<DirectoryInfo>();
+                if (subDirs != null)
                 {
-                    if (FileSystem.IsReparsePoint(subDir.FullName) && !_flags.ignoreSymlinks)
+                    foreach (var subDir in subDirs)
                     {
-                        if (_flags.includeStatistics)
-                            stats.skippedFolders++;
-                        if (_flags.filesOnly)
-                            continue;
-                        yield return new Node
+                        if (FileSystem.IsReparsePoint(subDir.FullName) && !_flags.ignoreSymlinks)
                         {
-                            Id = _currentId++,
-                            ParentId = newId,
-                            Name =
-                                (!_flags.includeIcons ? null : "[→] ")
-                                + _flags.nodeLabel switch
+                            if (_flags.includeStatistics)
+                                stats.skippedFolders++;
+                            if (_flags.filesOnly)
+                                continue;
+                            yield return new Node
+                            {
+                                Id = _currentId++,
+                                ParentId = newId,
+                                Name =
+                                    (!_flags.includeIcons ? null : "[→] ")
+                                    + _flags.nodeLabel switch
+                                    {
+                                        Settings.NodeLabel.FullPath => subDir.FullName,
+                                        Settings.NodeLabel.RelativePath => Path.GetRelativePath(
+                                            _flags.targetDir,
+                                            subDir.FullName
+                                        ),
+                                        _ => subDir.Name, // .Name included
+                                    }
+                                    + " (reparse point)",
+                                IsFile = false,
+                                IsSkipped = true,
+                                Level = level + 1,
+                            };
+                        }
+                        else
+                        {
+                            if (_flags.includeStatistics)
+                                stats.folders++;
+                            if (!_flags.dirBlacklist.Contains(subDir.Name))
+                            {
+                                foreach (
+                                    var childNode in TraverseDirectory(subDir, newId, level + 1)
+                                )
                                 {
-                                    Settings.NodeLabel.FullPath => subDir.FullName,
-                                    Settings.NodeLabel.RelativePath => Path.GetRelativePath(
-                                        _flags.targetDir,
-                                        subDir.FullName
-                                    ),
-                                    _ => subDir.Name, // .Name included
+                                    yield return childNode;
                                 }
-                                + " (reparse point)",
-                            IsFile = false,
-                            IsSkipped = true,
-                            Level = level + 1,
-                        };
-                    }
-                    else
-                    {
-                        if (_flags.includeStatistics)
-                            stats.folders++;
-                        foreach (var childNode in TraverseDirectory(subDir, newId, level + 1))
-                        {
-                            yield return childNode;
+                            }
                         }
                     }
                 }
+            }
 
             // send files
             if (!_flags.dirsOnly)

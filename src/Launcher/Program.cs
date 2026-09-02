@@ -1,6 +1,6 @@
 ﻿using Core;
-using static CLI.Display;
-using static CLI.InputHandler;
+using static TUI.Display;
+using static TUI.InputHandler;
 
 namespace Launcher
 {
@@ -16,11 +16,11 @@ namespace Launcher
             {
                 if (needsCLI)
                 {
-                    await CLI.Main.Run();
+                    await TUI.Main.Run();
                 }
                 else
                 {
-                    silentResult = await Silent.Main.Run(args);
+                    silentResult = await CLI.Main.Run(args);
                     _ex = silentResult.Ex;
                 }
             }

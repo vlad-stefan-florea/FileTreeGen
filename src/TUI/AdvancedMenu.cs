@@ -1,8 +1,9 @@
 ﻿using Core;
-using static CLI.Display;
+using Core.Utils;
 using static Core.Settings;
+using static TUI.Display;
 
-namespace CLI
+namespace TUI
 {
     internal class AdvancedMenu
     {
@@ -11,7 +12,7 @@ namespace CLI
             bool back = false;
             while (!back)
             {
-                CliAdvancedOptions? option = InputHandler.ChoiceMenu<CliAdvancedOptions>(
+                TuiAdvancedOptions? option = InputHandler.ChoiceMenu<TuiAdvancedOptions>(
                     "Choose an advanced option to edit"
                 );
                 if (option is null)
@@ -22,226 +23,8 @@ namespace CLI
 
                 switch (option)
                 {
-                    case CliAdvancedOptions.Auto_Open_Report:
-                    {
-                        oldFlags.autoOpenReport = InputHandler.AskForSwitch(
-                            "Automatically open the report after generation?",
-                            oldFlags.autoOpenReport
-                        );
-                        break;
-                    }
-
-                    case CliAdvancedOptions.Buffer_Size:
-                    {
-                        oldFlags.bufferSize =
-                            (InputHandler.ChoiceMenu<BufferSize>("Please choose the buffer size:"))
-                            ?? oldFlags.bufferSize;
-                        break;
-                    }
-
-                    case CliAdvancedOptions.Directories_Only:
-                    {
-                        bool newValue = InputHandler.AskForSwitch(
-                            "Include ONLY FOLDERS in the generated report?",
-                            oldFlags.dirsOnly
-                        );
-                        var change = TryApplyChange(oldFlags =>
-                        {
-                            oldFlags.dirsOnly = newValue;
-                        });
-                        if (!change.IsValid)
-                        {
-                            WriteMsg(change.Message, MsgType.Warning);
-                            break;
-                        }
-                        oldFlags.dirsOnly = newValue;
-                        break;
-                    }
-
-                    case CliAdvancedOptions.Extensions_Blacklist:
-                    {
-                        var change = TryApplyChange(oldFlags =>
-                        {
-                            oldFlags.extBlacklist = ["<placeholder>"]; // simulate non-empty blacklist
-                        });
-                        if (!change.IsValid)
-                        {
-                            WriteMsg(change.Message, MsgType.Warning);
-                            break;
-                        }
-
-                        string list = "CURRENT BLACKLIST CONTENTS:";
-                        foreach (string ext in oldFlags.extBlacklist)
-                            list += $" {ext};";
-                        WriteMsg(list, MsgType.Info);
-                        oldFlags.extBlacklist = InputHandler.AskForExtensions(
-                            "Please write the blacklisted extensions",
-                            oldFlags.extBlacklist
-                        );
-                        list = "UPDATED BLACKLIST CONTENTS:";
-                        foreach (string ext in oldFlags.extBlacklist)
-                            list += string.IsNullOrEmpty(ext) ? " \"\";" : $" {ext};";
-                        WriteMsg(list, MsgType.Save);
-                        break;
-                    }
-
-                    case CliAdvancedOptions.Extensions_Whitelist:
-                    {
-                        var change = TryApplyChange(oldFlags =>
-                        {
-                            oldFlags.extWhitelist = ["<placeholder>"]; // simulate non-empty whitelist
-                        });
-                        if (!change.IsValid)
-                        {
-                            WriteMsg(change.Message, MsgType.Warning);
-                            break;
-                        }
-
-                        string list = "CURRENT WHITELIST CONTENTS:";
-                        foreach (string ext in oldFlags.extWhitelist)
-                            list += $" {ext};";
-                        WriteMsg(list, MsgType.Info);
-
-                        oldFlags.extWhitelist = InputHandler.AskForExtensions(
-                            "Please write the whitelisted extensions",
-                            oldFlags.extWhitelist
-                        );
-                        list = "UPDATED WHITELIST CONTENTS:";
-                        foreach (string ext in oldFlags.extWhitelist)
-                            list += string.IsNullOrEmpty(ext) ? " \"\";" : $" {ext};";
-                        WriteMsg(list, MsgType.Save);
-                        break;
-                    }
-
-                    case CliAdvancedOptions.Files_Only:
-                    {
-                        bool newValue = InputHandler.AskForSwitch(
-                            "Include ONLY FILES in the generated report?",
-                            oldFlags.filesOnly
-                        );
-                        var change = TryApplyChange(oldFlags =>
-                        {
-                            oldFlags.filesOnly = newValue;
-                        });
-                        if (!change.IsValid)
-                        {
-                            WriteMsg(change.Message, MsgType.Warning);
-                            break;
-                        }
-                        oldFlags.filesOnly = newValue;
-                        break;
-                    }
-
-                    case CliAdvancedOptions.Ignore_Empty_Directories:
-                    {
-                        bool newValue = InputHandler.AskForSwitch(
-                            "Exclude all empty folders from the report?",
-                            oldFlags.ignoreEmptyDirs
-                        );
-                        var change = TryApplyChange(oldFlags =>
-                        {
-                            oldFlags.ignoreEmptyDirs = newValue;
-                        });
-                        if (!change.IsValid)
-                        {
-                            WriteMsg(change.Message, MsgType.Warning);
-                            break;
-                        }
-                        oldFlags.ignoreEmptyDirs = newValue;
-                        break;
-                    }
-
-                    case CliAdvancedOptions.Max_Search_Depth:
-                        oldFlags.maxDepth = InputHandler.AskForInt(
-                            "Maximum search depth",
-                            1,
-                            int.MaxValue
-                        );
-                        WriteMsg(
-                            $"Maximum search depth was set to: '{oldFlags.maxDepth}'",
-                            MsgType.Save
-                        );
-                        break;
-
-                    case CliAdvancedOptions.Include_Icons:
-                    {
-                        bool newValue = InputHandler.AskForSwitch(
-                            "Include icons in the generated report?",
-                            oldFlags.includeIcons
-                        );
-                        var change = TryApplyChange(oldFlags =>
-                        {
-                            oldFlags.includeIcons = newValue;
-                        });
-                        if (!change.IsValid)
-                        {
-                            WriteMsg(change.Message, MsgType.Warning);
-                            break;
-                        }
-                        oldFlags.includeIcons = newValue;
-                        break;
-                    }
-
-                    case CliAdvancedOptions.Format_Report:
-                    {
-                        bool newValue = InputHandler.AskForSwitch(
-                            "If the report should be formatted based on the output type or just a plain text list.",
-                            oldFlags.formatReport
-                        );
-                        var change = TryApplyChange(oldFlags =>
-                        {
-                            oldFlags.includeIcons = newValue;
-                        });
-                        if (!change.IsValid)
-                        {
-                            WriteMsg(change.Message, MsgType.Warning);
-                            break;
-                        }
-                        oldFlags.formatReport = newValue;
-                        if (!newValue)
-                        {
-                            oldFlags.includeIcons = false;
-                            WriteMsg(
-                                "The 'Include Icons' option was turned off automatically.",
-                                MsgType.Warning
-                            );
-                        }
-                        break;
-                    }
-
-                    case CliAdvancedOptions.Include_Statistics:
-                    {
-                        bool newValue = InputHandler.AskForSwitch(
-                            "Include statistics in the generated report?",
-                            oldFlags.includeStatistics
-                        );
-                        var change = TryApplyChange(oldFlags =>
-                        {
-                            oldFlags.includeStatistics = newValue;
-                        });
-                        if (!change.IsValid)
-                        {
-                            WriteMsg(change.Message, MsgType.Warning);
-                            break;
-                        }
-                        oldFlags.includeStatistics = newValue;
-                        break;
-                    }
-
-                    case CliAdvancedOptions.Output_Directory:
-                        oldFlags.outDir = InputHandler.AskForDir();
-                        break;
-
-                    case CliAdvancedOptions.Node_Label_Scheme:
-                        oldFlags.nodeLabel =
-                            (
-                                InputHandler.ChoiceMenu<NodeLabel>(
-                                    "Please choose the node label (naming scheme):"
-                                )
-                            ) ?? oldFlags.nodeLabel;
-                        break;
-
-                    case CliAdvancedOptions.Report_Name_Scheme:
+                    #region REPORT
+                    case TuiAdvancedOptions.Report_Name_Scheme:
                         oldFlags.reportNameScheme =
                             (
                                 InputHandler.ChoiceMenu<ReportNameScheme>(
@@ -249,8 +32,7 @@ namespace CLI
                                 )
                             ) ?? oldFlags.reportNameScheme;
                         break;
-
-                    case CliAdvancedOptions.Tree_Only:
+                    case TuiAdvancedOptions.Tree_Only:
                     {
                         bool newValue = InputHandler.AskForSwitch(
                             "Include just the tree in the generated report?",
@@ -267,25 +49,288 @@ namespace CLI
                         oldFlags.treeOnly = newValue;
                         break;
                     }
+                    #endregion
 
-                    case CliAdvancedOptions.Ignore_SymLinks:
+                    #region FILTERING
+                    case TuiAdvancedOptions.Directories_Only:
+                    {
+                        bool newValue = InputHandler.AskForSwitch(
+                            "Include ONLY FOLDERS in the generated report?",
+                            oldFlags.dirsOnly
+                        );
+                        var change = TryApplyChange(oldFlags =>
+                        {
+                            oldFlags.dirsOnly = newValue;
+                        });
+                        if (!string.IsNullOrEmpty(change.Message))
+                        {
+                            WriteMsg(change.Message, MsgType.Warning);
+                            if (!change.IsValid)
+                                break;
+                        }
+                        oldFlags.dirsOnly = newValue;
+                        break;
+                    }
+                    case TuiAdvancedOptions.Director_Names_Blacklist:
+                    {
+                        var change = TryApplyChange(oldFlags =>
+                        {
+                            oldFlags.dirBlacklist = ["<placeholder>"]; // simulate non-empty blacklist
+                        });
+                        if (!string.IsNullOrEmpty(change.Message))
+                        {
+                            WriteMsg(change.Message, MsgType.Warning);
+                            if (!change.IsValid)
+                                break;
+                        }
+
+                        string list = "CURRENTLY EXCLUDED FOLDERS:";
+                        foreach (string ext in oldFlags.dirBlacklist)
+                            list += $" {ext};";
+                        WriteMsg(list, MsgType.Info);
+                        oldFlags.dirBlacklist = InputHandler.AskForHashSet(
+                            "Please write the blacklisted directory names",
+                            oldFlags.dirBlacklist
+                        );
+                        list = "UPDATED BLACKLIST CONTENTS:";
+                        foreach (string ext in oldFlags.dirBlacklist)
+                            list += $" {ext};";
+                        WriteMsg(list, MsgType.Save);
+                        break;
+                    }
+                    case TuiAdvancedOptions.Extensions_Blacklist:
+                    {
+                        var change = TryApplyChange(oldFlags =>
+                        {
+                            oldFlags.extBlacklist = ["<placeholder>"]; // simulate non-empty blacklist
+                        });
+                        if (!string.IsNullOrEmpty(change.Message))
+                        {
+                            WriteMsg(change.Message, MsgType.Warning);
+                            if (!change.IsValid)
+                                break;
+                        }
+
+                        string list = "CURRENT BLACKLIST CONTENTS:";
+                        foreach (string ext in oldFlags.extBlacklist)
+                            list += $" {ext};";
+                        WriteMsg(list, MsgType.Info);
+                        oldFlags.extBlacklist = HashSetParser.ToExtHashSet(
+                            InputHandler.AskForHashSet(
+                                "Please write the blacklisted extensions",
+                                oldFlags.extBlacklist
+                            )
+                        );
+                        list = "UPDATED BLACKLIST CONTENTS:";
+                        foreach (string ext in oldFlags.extBlacklist)
+                            list += string.IsNullOrEmpty(ext) ? " \"\";" : $" {ext};";
+                        WriteMsg(list, MsgType.Save);
+                        break;
+                    }
+                    case TuiAdvancedOptions.Extensions_Whitelist:
+                    {
+                        var change = TryApplyChange(oldFlags =>
+                        {
+                            oldFlags.extWhitelist = ["<placeholder>"]; // simulate non-empty whitelist
+                        });
+                        if (!string.IsNullOrEmpty(change.Message))
+                        {
+                            WriteMsg(change.Message, MsgType.Warning);
+                            if (!change.IsValid)
+                                break;
+                        }
+
+                        string list = "CURRENT WHITELIST CONTENTS:";
+                        foreach (string ext in oldFlags.extWhitelist)
+                            list += $" {ext};";
+                        WriteMsg(list, MsgType.Info);
+
+                        oldFlags.extWhitelist = HashSetParser.ToExtHashSet(
+                            InputHandler.AskForHashSet(
+                                "Please write the whitelisted extensions",
+                                oldFlags.extWhitelist
+                            )
+                        );
+                        list = "UPDATED WHITELIST CONTENTS:";
+                        foreach (string ext in oldFlags.extWhitelist)
+                            list += string.IsNullOrEmpty(ext) ? " \"\";" : $" {ext};";
+                        WriteMsg(list, MsgType.Save);
+                        break;
+                    }
+                    case TuiAdvancedOptions.Files_Only:
+                    {
+                        bool newValue = InputHandler.AskForSwitch(
+                            "Include ONLY FILES in the generated report?",
+                            oldFlags.filesOnly
+                        );
+                        var change = TryApplyChange(oldFlags =>
+                        {
+                            oldFlags.filesOnly = newValue;
+                        });
+                        if (!string.IsNullOrEmpty(change.Message))
+                        {
+                            WriteMsg(change.Message, MsgType.Warning);
+                            if (!change.IsValid)
+                                break;
+                        }
+                        oldFlags.filesOnly = newValue;
+                        break;
+                    }
+                    #endregion
+
+                    #region SCAN
+                    case TuiAdvancedOptions.Auto_Open_Report:
+                    {
+                        oldFlags.autoOpenReport = InputHandler.AskForSwitch(
+                            "Automatically open the report after generation?",
+                            oldFlags.autoOpenReport
+                        );
+                        break;
+                    }
+                    case TuiAdvancedOptions.Buffer_Size:
+                    {
+                        oldFlags.bufferSize =
+                            (InputHandler.ChoiceMenu<BufferSize>("Please choose the buffer size:"))
+                            ?? oldFlags.bufferSize;
+                        break;
+                    }
+                    case TuiAdvancedOptions.Ignore_Empty_Directories:
+                    {
+                        bool newValue = InputHandler.AskForSwitch(
+                            "Exclude all empty folders from the report?",
+                            oldFlags.ignoreEmptyDirs
+                        );
+                        var change = TryApplyChange(oldFlags =>
+                        {
+                            oldFlags.ignoreEmptyDirs = newValue;
+                        });
+                        if (!string.IsNullOrEmpty(change.Message))
+                        {
+                            WriteMsg(change.Message, MsgType.Warning);
+                            if (!change.IsValid)
+                                break;
+                        }
+                        oldFlags.ignoreEmptyDirs = newValue;
+                        break;
+                    }
+                    case TuiAdvancedOptions.Ignore_SymLinks:
                         oldFlags.ignoreSymlinks = InputHandler.AskForSwitch(
                             "Exclude all symlinks from the report?",
                             oldFlags.ignoreSymlinks
                         );
                         break;
+                    case TuiAdvancedOptions.Include_Statistics:
+                    {
+                        bool newValue = InputHandler.AskForSwitch(
+                            "Include statistics in the generated report?",
+                            oldFlags.includeStatistics
+                        );
+                        var change = TryApplyChange(oldFlags =>
+                        {
+                            oldFlags.includeStatistics = newValue;
+                        });
+                        if (!string.IsNullOrEmpty(change.Message))
+                        {
+                            WriteMsg(change.Message, MsgType.Warning);
+                            if (!change.IsValid)
+                                break;
+                        }
+                        oldFlags.includeStatistics = newValue;
+                        break;
+                    }
+                    case TuiAdvancedOptions.Max_Search_Depth:
+                        oldFlags.maxDepth = InputHandler.AskForInt(
+                            "Maximum search depth",
+                            1,
+                            int.MaxValue
+                        );
+                        WriteMsg(
+                            $"Maximum search depth was set to: '{oldFlags.maxDepth}'",
+                            MsgType.Save
+                        );
+                        break;
+                    #endregion
+
+                    #region PRESEENTATION
+                    case TuiAdvancedOptions.Include_Icons:
+                    {
+                        bool newValue = InputHandler.AskForSwitch(
+                            "Include icons in the generated report?",
+                            oldFlags.includeIcons
+                        );
+                        var change = TryApplyChange(oldFlags =>
+                        {
+                            oldFlags.includeIcons = newValue;
+                        });
+                        if (!string.IsNullOrEmpty(change.Message))
+                        {
+                            WriteMsg(change.Message, MsgType.Warning);
+                            if (!change.IsValid)
+                                break;
+                        }
+                        oldFlags.includeIcons = newValue;
+                        break;
+                    }
+                    case TuiAdvancedOptions.Format_Report:
+                    {
+                        bool newValue = InputHandler.AskForSwitch(
+                            "If the report should be formatted based on the output type or just a plain text list.",
+                            oldFlags.formatReport
+                        );
+                        if (oldFlags.reportType == ReportType.HTML)
+                            WriteMsg(
+                                "The 'Format Report' option has no effect on HTML reports.",
+                                MsgType.Info
+                            );
+
+                        var change = TryApplyChange(oldFlags =>
+                        {
+                            oldFlags.includeIcons = newValue;
+                        });
+                        if (!string.IsNullOrEmpty(change.Message))
+                        {
+                            WriteMsg(change.Message, MsgType.Warning);
+                            if (!change.IsValid)
+                                break;
+                        }
+                        oldFlags.formatReport = newValue;
+                        if (!newValue)
+                        {
+                            oldFlags.includeIcons = false;
+                            WriteMsg(
+                                "The 'Include Icons' option was turned off automatically.",
+                                MsgType.Warning
+                            );
+                        }
+                        break;
+                    }
+                    case TuiAdvancedOptions.Node_Label_Scheme:
+                        oldFlags.nodeLabel =
+                            (
+                                InputHandler.ChoiceMenu<NodeLabel>(
+                                    "Please choose the node label (naming scheme):"
+                                )
+                            ) ?? oldFlags.nodeLabel;
+                        break;
+                    #endregion
+
+                    #region OUTPUT
+                    case TuiAdvancedOptions.Output_Directory:
+                        oldFlags.outDir = InputHandler.AskForDir();
+                        break;
+                    #endregion
 
                     default:
                         back = true;
                         break;
                 }
             }
-            return oldFlags; // I didn't want to create a copy, that's why i kept it as 'old' flags :3
+            return oldFlags;
 
             // flags validation
             (bool IsValid, string Message) TryApplyChange(Action<GenFlags> Change)
             {
-                bool IsValid = true;
+                bool IsValid = false;
                 string Message = string.Empty;
                 GenFlags Candidate = new(oldFlags);
                 Change(Candidate);
@@ -293,8 +338,10 @@ namespace CLI
                 bool onlyFiles = Candidate.filesOnly,
                     onlyDirs = Candidate.dirsOnly,
                     ignoreEmptyDirs = Candidate.ignoreEmptyDirs,
+                    ignoreSymlinks = Candidate.ignoreSymlinks,
                     byWhitelist = Candidate.extWhitelist.Count > 0,
                     byBlacklist = Candidate.extBlacklist.Count > 0,
+                    excludeDirs = Candidate.dirBlacklist.Count > 0,
                     dontFormat = !Candidate.formatReport,
                     treeOnly = Candidate.treeOnly,
                     includeStats = Candidate.includeStatistics,
@@ -302,49 +349,63 @@ namespace CLI
 
                 if (onlyFiles && onlyDirs)
                 {
-                    IsValid = false;
                     Message =
                         "The options 'Directories Only' and 'Files Only' cannot be used simultaneously.";
                 }
                 if (byWhitelist && byBlacklist)
                 {
-                    IsValid = false;
                     Message = "Cannot filter by 'Whitelist' and 'Blacklist' simultaneously.";
                 }
                 if (byWhitelist && onlyDirs)
                 {
-                    IsValid = false;
                     Message = "Cannot filter by Whitelist while 'Directories Only' is active.";
                 }
                 if (byBlacklist && onlyDirs)
                 {
-                    IsValid = false;
                     Message = "Cannot filter by Blacklist while 'Directories Only' is active.";
                 }
                 if (onlyFiles && ignoreEmptyDirs)
                 {
-                    IsValid = false;
                     Message =
-                        "Cannot activate the option 'Ignore Empty Directories' while 'files only' is active.";
+                        "Cannot activate the option 'Ignore Empty Directories' while 'Files Only' is active.";
                 }
-                if (Candidate.reportType == ReportType.HTML && dontFormat) // not really an issue, mostly for info
+                if (onlyFiles && excludeDirs)
                 {
-                    IsValid = true;
-                    Message = "The 'Format Report' option has no effect on HTML reports.";
+                    Message = "Cannot exclude directories while 'Files Only' is active.";
                 }
                 if (dontFormat && useIcons)
                 {
-                    IsValid = false;
                     Message = "Cannot include icons while 'No Report Formatting' is active.";
                 }
                 if (treeOnly && includeStats)
                 {
-                    IsValid = false;
                     Message =
                         "Cannot include statistics in the report while 'Tree Only' is active.";
                 }
+                IsValid = string.IsNullOrEmpty(Message);
                 return (IsValid, Message);
             }
+        }
+
+        public enum TuiAdvancedOptions
+        {
+            Auto_Open_Report,
+            Buffer_Size,
+            Directories_Only,
+            Director_Names_Blacklist,
+            Extensions_Blacklist,
+            Extensions_Whitelist,
+            Files_Only,
+            Format_Report,
+            Ignore_Empty_Directories,
+            Ignore_SymLinks,
+            Include_Icons,
+            Include_Statistics,
+            Max_Search_Depth,
+            Node_Label_Scheme,
+            Output_Directory,
+            Report_Name_Scheme,
+            Tree_Only,
         }
     }
 }

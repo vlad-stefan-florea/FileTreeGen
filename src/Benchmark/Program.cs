@@ -2,8 +2,8 @@
 using Core;
 using Core.Utils;
 using Core.Writers;
-using static CLI.Display;
 using static Core.Settings;
+using static TUI.Display;
 
 namespace Benchmark
 {

@@ -6,11 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.CommandLine" Version="2.0.10" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\CLI\CLI.csproj" />
     <ProjectReference Include="..\Core\Core.csproj" />
   </ItemGroup>
 </Project>

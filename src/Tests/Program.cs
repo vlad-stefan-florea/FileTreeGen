@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics;
-using static CLI.Display;
+using static TUI.Display;
 
 namespace Tests
 {
@@ -13,7 +13,7 @@ namespace Tests
             string outDir = Path.Combine(Path.GetTempPath(), "ftg_tests");
             if (!Directory.Exists(outDir))
                 Directory.CreateDirectory(outDir);
-            var tests = TestsData.Basic;
+            var scanTests = TestsData.ScanCmd;
             DrawDefaults();
             int c = 1;
             bool success = true;
@@ -40,8 +40,10 @@ namespace Tests
                 }
             }
             WriteMsg($"Build succeeded!", MsgType.Success);
+
+            // start the tests
             Stopwatch sw = Stopwatch.StartNew();
-            foreach (var test in tests)
+            foreach (var test in scanTests)
             {
                 string[]? args = test.Value.Args?.Split(' ');
                 DrawTestHeader(c, test.Key);
@@ -59,6 +61,7 @@ namespace Tests
                 psi.ArgumentList.Add("run");
                 psi.ArgumentList.Add("--no-build");
                 psi.ArgumentList.Add("--");
+                psi.ArgumentList.Add("scan");
                 psi.ArgumentList.Add(targetDir);
                 psi.ArgumentList.Add("--out-dir");
                 psi.ArgumentList.Add(outDir);
