@@ -73,7 +73,8 @@ namespace Core
             ignoreEmptyDirs = Base.ignoreEmptyDirs;
             ignoreSymlinks = Base.ignoreSymlinks;
             includeStatistics = Base.includeStatistics;
-            // presentation formatReport = Base.formatReport;
+            // presentation
+            formatReport = Base.formatReport;
             includeIcons = Base.includeIcons;
             nodeLabel = Base.nodeLabel;
             // output

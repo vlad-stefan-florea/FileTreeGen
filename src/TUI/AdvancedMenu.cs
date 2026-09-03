@@ -58,30 +58,30 @@ namespace TUI
                             "Include ONLY FOLDERS in the generated report?",
                             oldFlags.dirsOnly
                         );
-                        var change = TryApplyChange(oldFlags =>
+                        var changeOut = TryApplychangeOut(oldFlags =>
                         {
                             oldFlags.dirsOnly = newValue;
                         });
-                        if (!string.IsNullOrEmpty(change.Message))
+                        if (!string.IsNullOrEmpty(changeOut))
                         {
-                            WriteMsg(change.Message, MsgType.Warning);
-                            if (!change.IsValid)
-                                break;
+                            WriteMsg(changeOut, MsgType.Warning);
+
+                            break;
                         }
                         oldFlags.dirsOnly = newValue;
                         break;
                     }
                     case TuiAdvancedOptions.Director_Names_Blacklist:
                     {
-                        var change = TryApplyChange(oldFlags =>
+                        var changeOut = TryApplychangeOut(oldFlags =>
                         {
                             oldFlags.dirBlacklist = ["<placeholder>"]; // simulate non-empty blacklist
                         });
-                        if (!string.IsNullOrEmpty(change.Message))
+                        if (!string.IsNullOrEmpty(changeOut))
                         {
-                            WriteMsg(change.Message, MsgType.Warning);
-                            if (!change.IsValid)
-                                break;
+                            WriteMsg(changeOut, MsgType.Warning);
+
+                            break;
                         }
 
                         string list = "CURRENTLY EXCLUDED FOLDERS:";
@@ -100,15 +100,15 @@ namespace TUI
                     }
                     case TuiAdvancedOptions.Extensions_Blacklist:
                     {
-                        var change = TryApplyChange(oldFlags =>
+                        var changeOut = TryApplychangeOut(oldFlags =>
                         {
                             oldFlags.extBlacklist = ["<placeholder>"]; // simulate non-empty blacklist
                         });
-                        if (!string.IsNullOrEmpty(change.Message))
+                        if (!string.IsNullOrEmpty(changeOut))
                         {
-                            WriteMsg(change.Message, MsgType.Warning);
-                            if (!change.IsValid)
-                                break;
+                            WriteMsg(changeOut, MsgType.Warning);
+
+                            break;
                         }
 
                         string list = "CURRENT BLACKLIST CONTENTS:";
@@ -129,15 +129,15 @@ namespace TUI
                     }
                     case TuiAdvancedOptions.Extensions_Whitelist:
                     {
-                        var change = TryApplyChange(oldFlags =>
+                        var changeOut = TryApplychangeOut(oldFlags =>
                         {
                             oldFlags.extWhitelist = ["<placeholder>"]; // simulate non-empty whitelist
                         });
-                        if (!string.IsNullOrEmpty(change.Message))
+                        if (!string.IsNullOrEmpty(changeOut))
                         {
-                            WriteMsg(change.Message, MsgType.Warning);
-                            if (!change.IsValid)
-                                break;
+                            WriteMsg(changeOut, MsgType.Warning);
+
+                            break;
                         }
 
                         string list = "CURRENT WHITELIST CONTENTS:";
@@ -163,15 +163,15 @@ namespace TUI
                             "Include ONLY FILES in the generated report?",
                             oldFlags.filesOnly
                         );
-                        var change = TryApplyChange(oldFlags =>
+                        var changeOut = TryApplychangeOut(oldFlags =>
                         {
                             oldFlags.filesOnly = newValue;
                         });
-                        if (!string.IsNullOrEmpty(change.Message))
+                        if (!string.IsNullOrEmpty(changeOut))
                         {
-                            WriteMsg(change.Message, MsgType.Warning);
-                            if (!change.IsValid)
-                                break;
+                            WriteMsg(changeOut, MsgType.Warning);
+
+                            break;
                         }
                         oldFlags.filesOnly = newValue;
                         break;
@@ -200,15 +200,15 @@ namespace TUI
                             "Exclude all empty folders from the report?",
                             oldFlags.ignoreEmptyDirs
                         );
-                        var change = TryApplyChange(oldFlags =>
+                        var changeOut = TryApplychangeOut(oldFlags =>
                         {
                             oldFlags.ignoreEmptyDirs = newValue;
                         });
-                        if (!string.IsNullOrEmpty(change.Message))
+                        if (!string.IsNullOrEmpty(changeOut))
                         {
-                            WriteMsg(change.Message, MsgType.Warning);
-                            if (!change.IsValid)
-                                break;
+                            WriteMsg(changeOut, MsgType.Warning);
+
+                            break;
                         }
                         oldFlags.ignoreEmptyDirs = newValue;
                         break;
@@ -225,15 +225,15 @@ namespace TUI
                             "Include statistics in the generated report?",
                             oldFlags.includeStatistics
                         );
-                        var change = TryApplyChange(oldFlags =>
+                        var changeOut = TryApplychangeOut(oldFlags =>
                         {
                             oldFlags.includeStatistics = newValue;
                         });
-                        if (!string.IsNullOrEmpty(change.Message))
+                        if (!string.IsNullOrEmpty(changeOut))
                         {
-                            WriteMsg(change.Message, MsgType.Warning);
-                            if (!change.IsValid)
-                                break;
+                            WriteMsg(changeOut, MsgType.Warning);
+
+                            break;
                         }
                         oldFlags.includeStatistics = newValue;
                         break;
@@ -251,22 +251,22 @@ namespace TUI
                         break;
                     #endregion
 
-                    #region PRESEENTATION
+                    #region PRESENTATION
                     case TuiAdvancedOptions.Include_Icons:
                     {
                         bool newValue = InputHandler.AskForSwitch(
                             "Include icons in the generated report?",
                             oldFlags.includeIcons
                         );
-                        var change = TryApplyChange(oldFlags =>
+                        var changeOut = TryApplychangeOut(oldFlags =>
                         {
                             oldFlags.includeIcons = newValue;
                         });
-                        if (!string.IsNullOrEmpty(change.Message))
+                        if (!string.IsNullOrEmpty(changeOut))
                         {
-                            WriteMsg(change.Message, MsgType.Warning);
-                            if (!change.IsValid)
-                                break;
+                            WriteMsg(changeOut, MsgType.Warning);
+
+                            break;
                         }
                         oldFlags.includeIcons = newValue;
                         break;
@@ -283,17 +283,10 @@ namespace TUI
                                 MsgType.Info
                             );
 
-                        var change = TryApplyChange(oldFlags =>
+                        var changeOut = TryApplychangeOut(oldFlags =>
                         {
-                            oldFlags.includeIcons = newValue;
+                            oldFlags.formatReport = newValue;
                         });
-                        if (!string.IsNullOrEmpty(change.Message))
-                        {
-                            WriteMsg(change.Message, MsgType.Warning);
-                            if (!change.IsValid)
-                                break;
-                        }
-                        oldFlags.formatReport = newValue;
                         if (!newValue)
                         {
                             oldFlags.includeIcons = false;
@@ -302,6 +295,13 @@ namespace TUI
                                 MsgType.Warning
                             );
                         }
+                        else if (!string.IsNullOrEmpty(changeOut))
+                        {
+                            WriteMsg(changeOut, MsgType.Warning);
+
+                            break;
+                        }
+                        oldFlags.formatReport = newValue;
                         break;
                     }
                     case TuiAdvancedOptions.Node_Label_Scheme:
@@ -328,12 +328,11 @@ namespace TUI
             return oldFlags;
 
             // flags validation
-            (bool IsValid, string Message) TryApplyChange(Action<GenFlags> Change)
+            string? TryApplychangeOut(Action<GenFlags> changeOut)
             {
-                bool IsValid = false;
-                string Message = string.Empty;
+                string? Message = null;
                 GenFlags Candidate = new(oldFlags);
-                Change(Candidate);
+                changeOut(Candidate);
 
                 bool onlyFiles = Candidate.filesOnly,
                     onlyDirs = Candidate.dirsOnly,
@@ -382,8 +381,7 @@ namespace TUI
                     Message =
                         "Cannot include statistics in the report while 'Tree Only' is active.";
                 }
-                IsValid = string.IsNullOrEmpty(Message);
-                return (IsValid, Message);
+                return Message;
             }
         }
 
