@@ -88,12 +88,12 @@ namespace CLI
                     nameof(GenFlags.maxDepth)
                 ),
                 ["ignoreEmptyDirs"] = new Cmd(
-                    "--ignore-empty-dirs",
+                    "--no-empty-dirs",
                     "Exclude empty directories from the report.",
                     nameof(GenFlags.ignoreEmptyDirs)
                 ),
                 ["ignoreSymlinks"] = new Cmd(
-                    "--ignore-symlinks",
+                    "--no-symlinks",
                     "Exclude symlink entries from the report.",
                     nameof(GenFlags.ignoreSymlinks)
                 ),
