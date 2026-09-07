@@ -71,7 +71,7 @@ namespace TUI
                         oldFlags.dirsOnly = newValue;
                         break;
                     }
-                    case TuiAdvancedOptions.Director_Names_Blacklist:
+                    case TuiAdvancedOptions.Directory_Names_Blacklist:
                     {
                         var changeOut = TryApplychangeOut(oldFlags =>
                         {
@@ -390,7 +390,7 @@ namespace TUI
             Auto_Open_Report,
             Buffer_Size,
             Directories_Only,
-            Director_Names_Blacklist,
+            Directory_Names_Blacklist,
             Extensions_Blacklist,
             Extensions_Whitelist,
             Files_Only,
