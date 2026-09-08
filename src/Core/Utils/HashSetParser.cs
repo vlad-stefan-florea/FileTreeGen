@@ -4,7 +4,8 @@
     {
         private static char[] validSeparators =  { ',', ';' },
             invalidChars = Path.GetInvalidFileNameChars();
-        private const int maxChars = 32;
+        private const int extMaxChars = 32,
+            dirMaxChars = 200;
         private static string[] emptyExts = ["<empty>", "\"\""];
 
         public enum HashSetType
@@ -35,7 +36,7 @@
 
                         if (
                             string.IsNullOrWhiteSpace(cleanPart)
-                            || cleanPart.Length > maxChars
+                            || cleanPart.Length > extMaxChars
                             || cleanPart.IndexOfAny(invalidChars) >= 0
                         )
                             continue;
@@ -52,7 +53,7 @@
                     foreach (var part in rawParts)
                     {
                         string cleanPart = part.ToLowerInvariant();
-                        if (string.IsNullOrWhiteSpace(cleanPart) || cleanPart.Length >= 0)
+                        if (string.IsNullOrWhiteSpace(cleanPart) || cleanPart.Length > dirMaxChars)
                             continue;
                         result.Add(cleanPart);
                     }

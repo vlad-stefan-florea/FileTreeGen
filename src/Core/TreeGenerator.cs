@@ -118,6 +118,8 @@ namespace Core
                 {
                     foreach (var subDir in subDirs)
                     {
+                        if (_flags.includeStatistics)
+                            stats.folders++;
                         if (FileSystem.IsReparsePoint(subDir.FullName) && !_flags.ignoreSymlinks)
                         {
                             if (_flags.includeStatistics)
@@ -147,16 +149,15 @@ namespace Core
                         }
                         else
                         {
-                            if (_flags.includeStatistics)
-                                stats.folders++;
-                            if (!_flags.dirBlacklist.Contains(subDir.Name))
+                            if (_flags.dirBlacklist.Contains(subDir.Name))
                             {
-                                foreach (
-                                    var childNode in TraverseDirectory(subDir, newId, level + 1)
-                                )
-                                {
-                                    yield return childNode;
-                                }
+                                if (_flags.includeStatistics)
+                                    stats.skippedFolders++;
+                                continue;
+                            }
+                            foreach (var childNode in TraverseDirectory(subDir, newId, level + 1))
+                            {
+                                yield return childNode;
                             }
                         }
                     }
@@ -184,10 +185,9 @@ namespace Core
                             else
                                 stats.totalSizeBytes += file.Length;
                         }
+                        Extensions[ext] = Extensions.GetValueOrDefault(ext) + 1;
                         if (skipped)
                             continue;
-
-                        Extensions[ext] = Extensions.GetValueOrDefault(ext) + 1;
                         yield return new Node
                         {
                             Id = _currentId++,
