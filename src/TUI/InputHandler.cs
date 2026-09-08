@@ -1,4 +1,5 @@
-﻿using static Core.Utils.Text;
+﻿using Core.Utils;
+using static Core.Utils.Text;
 using static TUI.Display;
 
 namespace TUI
@@ -143,7 +144,11 @@ namespace TUI
             }
         }
 
-        public static HashSet<string> AskForHashSet(string prompt, HashSet<string> currentHashSet)
+        public static HashSet<string> AskForHashSet(
+            string prompt,
+            HashSet<string> currentHashSet,
+            HashSetParser.HashSetType type
+        )
         {
             string? ans = string.Empty;
             while (true)
@@ -160,7 +165,7 @@ namespace TUI
                     if (ans.Contains("--clear"))
                         return new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-                    var result = Core.Utils.HashSetParser.FromString(ans);
+                    var result = HashSetParser.FromString(ans, type);
                     if (result.Count > 0)
                     {
                         currentHashSet.UnionWith(result);

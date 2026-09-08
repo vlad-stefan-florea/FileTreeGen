@@ -90,7 +90,8 @@ namespace TUI
                         WriteMsg(list, MsgType.Info);
                         oldFlags.dirBlacklist = InputHandler.AskForHashSet(
                             "Please write the blacklisted directory names",
-                            oldFlags.dirBlacklist
+                            oldFlags.dirBlacklist,
+                            HashSetParser.HashSetType.String
                         );
                         list = "UPDATED BLACKLIST CONTENTS:";
                         foreach (string ext in oldFlags.dirBlacklist)
@@ -115,11 +116,10 @@ namespace TUI
                         foreach (string ext in oldFlags.extBlacklist)
                             list += $" {ext};";
                         WriteMsg(list, MsgType.Info);
-                        oldFlags.extBlacklist = HashSetParser.ToExtHashSet(
-                            InputHandler.AskForHashSet(
-                                "Please write the blacklisted extensions",
-                                oldFlags.extBlacklist
-                            )
+                        oldFlags.extBlacklist = InputHandler.AskForHashSet(
+                            "Please write the blacklisted extensions",
+                            oldFlags.extBlacklist,
+                            HashSetParser.HashSetType.Extensions
                         );
                         list = "UPDATED BLACKLIST CONTENTS:";
                         foreach (string ext in oldFlags.extBlacklist)
@@ -145,11 +145,10 @@ namespace TUI
                             list += $" {ext};";
                         WriteMsg(list, MsgType.Info);
 
-                        oldFlags.extWhitelist = HashSetParser.ToExtHashSet(
-                            InputHandler.AskForHashSet(
-                                "Please write the whitelisted extensions",
-                                oldFlags.extWhitelist
-                            )
+                        oldFlags.extWhitelist = InputHandler.AskForHashSet(
+                            "Please write the whitelisted extensions",
+                            oldFlags.extWhitelist,
+                            HashSetParser.HashSetType.Extensions
                         );
                         list = "UPDATED WHITELIST CONTENTS:";
                         foreach (string ext in oldFlags.extWhitelist)

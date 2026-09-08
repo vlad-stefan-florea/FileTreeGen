@@ -266,20 +266,25 @@ namespace CLI
                     _flags.nodeLabel = label;
 
                 // WHITELIST
-                if (result.GetValue(whitelistOption) is string whutelist)
-                    _flags.extWhitelist = HashSetParser.ToExtHashSet(
-                        HashSetParser.FromString(whutelist)
+                if (result.GetValue(whitelistOption) is string whitelist)
+                    _flags.extWhitelist = HashSetParser.FromString(
+                        whitelist,
+                        HashSetParser.HashSetType.Extensions
                     );
 
                 // BLACKLIST
                 if (result.GetValue(blacklistOption) is string blacklist)
-                    _flags.extBlacklist = HashSetParser.ToExtHashSet(
-                        HashSetParser.FromString(blacklist)
+                    _flags.extBlacklist = HashSetParser.FromString(
+                        blacklist,
+                        HashSetParser.HashSetType.Extensions
                     );
 
                 // DIR NAMES BLACKLIST
                 if (result.GetValue(blacklistOption) is string dirBlacklist)
-                    _flags.dirBlacklist = HashSetParser.FromString(dirBlacklist);
+                    _flags.dirBlacklist = HashSetParser.FromString(
+                        dirBlacklist,
+                        HashSetParser.HashSetType.String
+                    );
 
                 // DIRS ONLY
                 if (result.GetValue(dirsOnlyOption) is bool dirsOnly)
