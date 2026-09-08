@@ -353,10 +353,12 @@ namespace CLI
                     _flags.includeIcons = false; // no icons are used if 'no formatting' is active
                 if (treeOnly && includeStats) // treeOnly has priority
                     _flags.includeStatistics = false;
+                if (treeOnly && _flags.reportType == ReportType.HTML)
+                    ThrowIncompatible("HTML Report", "Tree Only");
             }
             void ThrowIncompatible(string arg1, string arg2)
             {
-                errorsOut.Add($"'{arg1}' and '{arg2}' cannot be used simultaneously.");
+                errorsOut.Add($"'{arg1}' and '{arg2}' cannot be used at the same time.");
                 throw new CoreException(
                     ExitCode.IncompatibleArguments,
                     ExitMessages.Get(ExitCode.IncompatibleArguments)

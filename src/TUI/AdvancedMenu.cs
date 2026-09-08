@@ -38,7 +38,16 @@ namespace TUI
                             "Include just the tree in the generated report?",
                             oldFlags.treeOnly
                         );
-                        if (oldFlags.includeStatistics)
+                        var changeOut = TryApplychangeOut(oldFlags =>
+                        {
+                            oldFlags.treeOnly = newValue;
+                        });
+                        if (!string.IsNullOrEmpty(changeOut))
+                        {
+                            WriteMsg(changeOut, MsgType.Warning);
+                            break;
+                        }
+                        if (newValue && oldFlags.includeStatistics)
                         {
                             oldFlags.includeStatistics = false;
                             WriteMsg(
@@ -65,7 +74,6 @@ namespace TUI
                         if (!string.IsNullOrEmpty(changeOut))
                         {
                             WriteMsg(changeOut, MsgType.Warning);
-
                             break;
                         }
                         oldFlags.dirsOnly = newValue;
@@ -80,7 +88,6 @@ namespace TUI
                         if (!string.IsNullOrEmpty(changeOut))
                         {
                             WriteMsg(changeOut, MsgType.Warning);
-
                             break;
                         }
 
@@ -108,7 +115,6 @@ namespace TUI
                         if (!string.IsNullOrEmpty(changeOut))
                         {
                             WriteMsg(changeOut, MsgType.Warning);
-
                             break;
                         }
 
@@ -136,7 +142,6 @@ namespace TUI
                         if (!string.IsNullOrEmpty(changeOut))
                         {
                             WriteMsg(changeOut, MsgType.Warning);
-
                             break;
                         }
 
@@ -169,7 +174,6 @@ namespace TUI
                         if (!string.IsNullOrEmpty(changeOut))
                         {
                             WriteMsg(changeOut, MsgType.Warning);
-
                             break;
                         }
                         oldFlags.filesOnly = newValue;
@@ -206,7 +210,6 @@ namespace TUI
                         if (!string.IsNullOrEmpty(changeOut))
                         {
                             WriteMsg(changeOut, MsgType.Warning);
-
                             break;
                         }
                         oldFlags.ignoreEmptyDirs = newValue;
@@ -231,7 +234,6 @@ namespace TUI
                         if (!string.IsNullOrEmpty(changeOut))
                         {
                             WriteMsg(changeOut, MsgType.Warning);
-
                             break;
                         }
                         oldFlags.includeStatistics = newValue;
@@ -264,7 +266,6 @@ namespace TUI
                         if (!string.IsNullOrEmpty(changeOut))
                         {
                             WriteMsg(changeOut, MsgType.Warning);
-
                             break;
                         }
                         oldFlags.includeIcons = newValue;
@@ -297,7 +298,6 @@ namespace TUI
                         else if (!string.IsNullOrEmpty(changeOut))
                         {
                             WriteMsg(changeOut, MsgType.Warning);
-
                             break;
                         }
                         oldFlags.formatReport = newValue;
@@ -379,6 +379,10 @@ namespace TUI
                 {
                     Message =
                         "Cannot include statistics in the report while 'Tree Only' is active.";
+                }
+                if (treeOnly && Candidate.reportType == ReportType.HTML)
+                {
+                    Message = "Cannot generate HTML reports with 'Tree Only' active.";
                 }
                 return Message;
             }
