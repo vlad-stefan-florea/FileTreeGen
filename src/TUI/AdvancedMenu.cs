@@ -91,18 +91,18 @@ namespace TUI
                             break;
                         }
 
-                        string list = "CURRENTLY EXCLUDED FOLDERS:";
-                        foreach (string ext in oldFlags.dirBlacklist)
-                            list += $" {ext};";
+                        string list = "CURRENTLY EXCLUDED FOLDERS: ";
+                        list += string.Join("; ", oldFlags.dirBlacklist);
                         WriteMsg(list, MsgType.Info);
+
                         oldFlags.dirBlacklist = InputHandler.AskForHashSet(
                             "Please write the blacklisted directory names",
                             oldFlags.dirBlacklist,
-                            HashSetParser.HashSetType.String
+                            HashSetParser.HashSetType.DirNames
                         );
-                        list = "UPDATED BLACKLIST CONTENTS:";
-                        foreach (string ext in oldFlags.dirBlacklist)
-                            list += $" {ext};";
+
+                        list = "UPDATED BLACKLIST CONTENTS: ";
+                        list += string.Join("; ", oldFlags.dirBlacklist);
                         WriteMsg(list, MsgType.Save);
                         break;
                     }
@@ -118,18 +118,21 @@ namespace TUI
                             break;
                         }
 
-                        string list = "CURRENT BLACKLIST CONTENTS:";
+                        string list = "CURRENT BLACKLIST CONTENTS: ";
                         foreach (string ext in oldFlags.extBlacklist)
-                            list += $" {ext};";
+                            list += string.IsNullOrEmpty(ext) ? " \"\";" : $" {ext};";
                         WriteMsg(list, MsgType.Info);
+
                         oldFlags.extBlacklist = InputHandler.AskForHashSet(
                             "Please write the blacklisted extensions",
                             oldFlags.extBlacklist,
                             HashSetParser.HashSetType.Extensions
                         );
+
                         list = "UPDATED BLACKLIST CONTENTS:";
                         foreach (string ext in oldFlags.extBlacklist)
                             list += string.IsNullOrEmpty(ext) ? " \"\";" : $" {ext};";
+
                         WriteMsg(list, MsgType.Save);
                         break;
                     }
@@ -146,8 +149,8 @@ namespace TUI
                         }
 
                         string list = "CURRENT WHITELIST CONTENTS:";
-                        foreach (string ext in oldFlags.extWhitelist)
-                            list += $" {ext};";
+                        foreach (string ext in oldFlags.extBlacklist)
+                            list += string.IsNullOrEmpty(ext) ? " \"\";" : $" {ext};";
                         WriteMsg(list, MsgType.Info);
 
                         oldFlags.extWhitelist = InputHandler.AskForHashSet(
@@ -155,6 +158,7 @@ namespace TUI
                             oldFlags.extWhitelist,
                             HashSetParser.HashSetType.Extensions
                         );
+
                         list = "UPDATED WHITELIST CONTENTS:";
                         foreach (string ext in oldFlags.extWhitelist)
                             list += string.IsNullOrEmpty(ext) ? " \"\";" : $" {ext};";

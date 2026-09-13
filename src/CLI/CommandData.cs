@@ -3,7 +3,7 @@ using static CLI.Commands;
 
 namespace CLI
 {
-    public static class CommandData
+    internal class CommandData
     {
         public static class RootCmd
         {
@@ -126,7 +126,7 @@ namespace CLI
                 ["dirBlacklist"] = new Cmd(
                     "--filter-dirs",
                     "The directory names to exclude from the report.",
-                    nameof(GenFlags.treeOnly)
+                    nameof(GenFlags.dirBlacklist)
                 ),
             };
         }

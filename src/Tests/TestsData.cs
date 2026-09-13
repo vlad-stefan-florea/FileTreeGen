@@ -26,7 +26,7 @@
             ["Files Only"] = ("--files-only", 0),
             ["Max Depth (OK)"] = ("--max-depth 10", 0),
             ["Ignore Empty Dirs"] = ("--ignore-empty-dirs", 0),
-            ["Ignore Symlinks"] = ("--ignore-symlinks", 0),
+            ["Ignore Symlinks"] = ("--no-symlinks", 0),
             ["No Stats"] = ("--no-stats", 0),
             ["No Formatting"] = ("--no-formatting", 0),
             ["No Icons"] = ("--no-icons", 0),

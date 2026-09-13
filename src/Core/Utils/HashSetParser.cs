@@ -11,7 +11,7 @@
         public enum HashSetType
         {
             Extensions,
-            String,
+            DirNames,
         }
 
         public static HashSet<string> FromString(string input, HashSetType type)
@@ -48,7 +48,7 @@
                     }
                     break;
                 }
-                case HashSetType.String:
+                case HashSetType.DirNames:
                 {
                     foreach (var part in rawParts)
                     {

@@ -128,8 +128,9 @@ namespace Core.Writers
                 + $"GENERATED IN: {Generator.stats.genTimespan} ;"
                 + $"FOLDERS: {Generator.stats.folders} ;"
                 + $"SKIPPED FOLDERS: {Generator.stats.skippedFolders} ;"
-                + $"FILES: {Generator.Extensions.Values.Sum()} ;"
+                + $"FILES: {Generator.stats.files} ;"
                 + $"SKIPPED FILES: {Generator.stats.skippedFiles} ;"
+                + $"SYMBOLIC LINKS: {Generator.stats.symlinks}"
                 + $"TOTAL SIZE: {Utils.FileSystem.ComputeSize(Generator.stats.totalSizeBytes)} ;";
             html.Append(
                 $"<div class=\"p\" tabindex=\"0\" aria-label=\"{ariaLabel}\"><h4>BASIC STATISTICS</h4><ul>"
@@ -137,12 +138,13 @@ namespace Core.Writers
             html.Append($"<li><b>GENERATED IN:</b> {Generator.stats.genTimespan}</li>");
             html.Append($"<li><b>FOLDERS:</b> {Generator.stats.folders}</li>");
             html.Append($"<li><b>SKIPPED FOLDERS:</b> {Generator.stats.skippedFolders}</li>");
-            html.Append($"<li><b>FILES:</b> {Generator.Extensions.Values.Sum()}</li>");
+            html.Append($"<li><b>FILES:</b> {Generator.stats.files}</li>");
             html.Append($"<li><b>SKIPPED FILES:</b> {Generator.stats.skippedFiles}</li>");
-
+            html.Append($"<li><b>SYMLINKS:</b> {Generator.stats.symlinks}</li>");
             html.Append(
                 $"<li><b>TOTAL SIZE:</b> {Utils.FileSystem.ComputeSize(Generator.stats.totalSizeBytes)}</li>"
             );
+
             html.Append("</ul></div>");
             html.Append(AdvnacedStatsPanel(Generator.Extensions));
             html.Append(HtmlStruct.RemainingBody());

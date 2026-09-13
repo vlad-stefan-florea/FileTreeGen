@@ -16,11 +16,20 @@ function initTree() {
 initTree();
 function createIdleHeader(node, message) {
   return `
-        <button class="h" id="node-${node.Id}" data-state="empty" style='cursor:default' aria-label='Empty Folder: ${node.Name}'>
+        <button class="h" id="node-${node.Id}" data-state="empty" style='cursor:default' aria-label='${message} Folder: ${node.Name}'>
           ${noIcons ? "" : `<span class="ico">${ICONS["folder_closed"]}</span>`}
           ${node.Name}
           <span class='ind' style='opacity:0.5'>(${message})</span>
         </button>
+    `;
+}
+function createFSymlinkHeader(node) {
+  return `
+        <a href="file:///${rootPath}/${node.Path}" class="h" id="node-${node.Id}" target="_blank" aria-label='Open Symbolic Link File: ${node.Name}'>
+            ${noIcons ? "" : `<span class="ico">${ICONS["symlink"]}</span>`}
+            ${node.Name}
+            <span class='ind' style='opacity:0.5'>(Symlink)</span>
+        </a>
     `;
 }
 function createHeader(node) {
@@ -31,6 +40,8 @@ function createHeader(node) {
       return createIdleHeader(node, "Skipped");
     } else if (node.IsUnscanned) {
       return createIdleHeader(node, "Not Scanned");
+    } else if (node.IsSymlink) {
+      return createIdleHeader(node, "Symlink");
     } else
       return `
               <button class="h" id="node-${node.Id}" data-state="closed" onclick="handleFolderClick(${node.Id})" aria-label='Expand folder: ${node.Name}'>
@@ -39,6 +50,8 @@ function createHeader(node) {
                 <span class='ind'>[+]</span>
               </button>
             `;
+  } else if (node.IsSymlink) {
+    return createFSymlinkHeader(node);
   } else {
     const ext = getFileExt(node.Path);
     const iconKey = EXTENSION_MAP[ext] || "default";

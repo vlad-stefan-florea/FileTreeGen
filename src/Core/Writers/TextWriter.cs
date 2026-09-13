@@ -32,6 +32,8 @@ namespace Core.Writers
                     node.Name += " (Skipped)";
                 else if (node.IsUnscanned)
                     node.Name += " (Not Scanned)";
+                else if (!node.IsSymlink)
+                    node.Name += " (Symlink)";
             }
             await writer.WriteAsync($"{prefix}{symbol} {node.Name}".Trim() + "\r\n");
         }
@@ -72,8 +74,9 @@ namespace Core.Writers
                 GENERATED IN: {Generator.stats.genTimespan}
                 FOLDERS: {Generator.stats.folders}
                 SKIPPED FOLDERS: {Generator.stats.skippedFolders}
-                FILES: {Generator.Extensions.Values.Sum()}
+                FILES: {Generator.stats.files}
                 SKIPPED FILES: {Generator.stats.skippedFiles}
+                SYMLINKS: {Generator.stats.symlinks}
                 UNIQUE EXTENSIONS: {Generator.Extensions.Count}
                 TOTAL SIZE: {Utils.FileSystem.ComputeSize(Generator.stats.totalSizeBytes)}
                 ----------------------------------------

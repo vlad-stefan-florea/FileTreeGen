@@ -6,7 +6,7 @@ using static Core.Settings;
 
 namespace CLI
 {
-    public static class Main
+    public class Main
     {
         static GenFlags _flags = new GenFlags();
 
@@ -81,11 +81,11 @@ namespace CLI
             );
             scanCmd.Options.Add(filesOnlyOption);
             // dir names blacklist
-            var dirBlacklist = Commands.NewScanOption(
+            var dirBlacklistOption = Commands.NewScanOption(
                 CommandData.ScanCmd.Options["dirBlacklist"],
                 string.Empty
             );
-            scanCmd.Options.Add(dirBlacklist);
+            scanCmd.Options.Add(dirBlacklistOption);
 
             #endregion
             #region Scan
@@ -280,10 +280,10 @@ namespace CLI
                     );
 
                 // DIR NAMES BLACKLIST
-                if (result.GetValue(blacklistOption) is string dirBlacklist)
+                if (result.GetValue(dirBlacklistOption) is string dirBlacklist)
                     _flags.dirBlacklist = HashSetParser.FromString(
                         dirBlacklist,
-                        HashSetParser.HashSetType.String
+                        HashSetParser.HashSetType.DirNames
                     );
 
                 // DIRS ONLY

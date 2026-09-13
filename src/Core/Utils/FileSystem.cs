@@ -2,16 +2,8 @@
 {
     public class FileSystem
     {
-        public static bool IsReparsePoint(string path)
-        {
-            DirectoryInfo dirInfo = new DirectoryInfo(path);
-            if (dirInfo.Exists)
-            {
-                if ((dirInfo.Attributes & FileAttributes.ReparsePoint) != 0)
-                    return true;
-            }
-            return false;
-        }
+        public static bool IsReparsePoint(FileSystemInfo info) =>
+            (info.Attributes & FileAttributes.ReparsePoint) != 0;
 
         public static string ComputeSize(long sizeBytes)
         {

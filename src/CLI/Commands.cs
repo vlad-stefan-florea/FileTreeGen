@@ -3,7 +3,7 @@ using Core;
 
 namespace CLI
 {
-    public class Commands
+    internal class Commands
     {
         public record Cmd(
             string Name,

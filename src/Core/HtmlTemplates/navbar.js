@@ -77,3 +77,14 @@ function renderNavbar() {
   document.body.insertAdjacentHTML("afterbegin", html);
 }
 renderNavbar();
+function applyTheme() {
+        const prefersDark = window.matchMedia(
+          "(prefers-color-scheme: dark)",
+        ).matches;
+        if (prefersDark) {
+          document.body.classList.add("dark-mode");
+        } else {
+          document.body.classList.remove("dark-mode");
+        }
+      }
+      applyTheme();

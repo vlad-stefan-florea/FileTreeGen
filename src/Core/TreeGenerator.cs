@@ -100,12 +100,13 @@ namespace Core
                     IsFile = false,
                     IsEmptyDir = folderIsEmpty,
                     IsSkipped = !hasAccess,
-                    IsUnscanned = level == _flags.maxDepth - 1,
+                    IsUnscanned = level >= _flags.maxDepth,
+                    IsSymlink = false,
                     Level = level,
                 };
             }
 
-            if (!hasAccess || level >= _flags.maxDepth)
+            if (!hasAccess || level > _flags.maxDepth)
             {
                 yield break;
             }
@@ -118,47 +119,40 @@ namespace Core
                 {
                     foreach (var subDir in subDirs)
                     {
-                        if (_flags.includeStatistics)
-                            stats.folders++;
-                        if (FileSystem.IsReparsePoint(subDir.FullName) && !_flags.ignoreSymlinks)
+                        if (FileSystem.IsReparsePoint(subDir) && !_flags.ignoreSymlinks)
                         {
                             if (_flags.includeStatistics)
-                                stats.skippedFolders++;
-                            if (_flags.filesOnly)
-                                continue;
+                                stats.symlinks++;
                             yield return new Node
                             {
                                 Id = _currentId++,
                                 ParentId = newId,
-                                Name =
-                                    (!_flags.includeIcons ? null : "[→] ")
-                                    + _flags.nodeLabel switch
-                                    {
-                                        Settings.NodeLabel.FullPath => subDir.FullName,
-                                        Settings.NodeLabel.RelativePath => Path.GetRelativePath(
-                                            _flags.targetDir,
-                                            subDir.FullName
-                                        ),
-                                        _ => subDir.Name, // .Name included
-                                    }
-                                    + " (reparse point)",
-                                IsFile = false,
-                                IsSkipped = true,
+                                Name = _flags.nodeLabel switch
+                                {
+                                    Settings.NodeLabel.FullPath => subDir.FullName,
+                                    Settings.NodeLabel.RelativePath => Path.GetRelativePath(
+                                        _flags.targetDir,
+                                        subDir.FullName
+                                    ),
+                                    _ => subDir.Name, // .Name included
+                                },
+                                IsSymlink = true,
                                 Level = level + 1,
                             };
+                            continue;
                         }
-                        else
+                        if (_flags.includeStatistics)
+                            stats.folders++;
+
+                        if (_flags.dirBlacklist.Contains(subDir.Name))
                         {
-                            if (_flags.dirBlacklist.Contains(subDir.Name))
-                            {
-                                if (_flags.includeStatistics)
-                                    stats.skippedFolders++;
-                                continue;
-                            }
-                            foreach (var childNode in TraverseDirectory(subDir, newId, level + 1))
-                            {
-                                yield return childNode;
-                            }
+                            if (_flags.includeStatistics)
+                                stats.skippedFolders++;
+                            continue;
+                        }
+                        foreach (var childNode in TraverseDirectory(subDir, newId, level + 1))
+                        {
+                            yield return childNode;
                         }
                     }
                 }
@@ -172,6 +166,30 @@ namespace Core
                 {
                     foreach (var file in files)
                     {
+                        if (FileSystem.IsReparsePoint(file) && !_flags.ignoreSymlinks)
+                        {
+                            if (_flags.includeStatistics)
+                                stats.symlinks++;
+                            yield return new Node
+                            {
+                                Id = _currentId++,
+                                ParentId = newId,
+                                Name = _flags.nodeLabel switch
+                                {
+                                    Settings.NodeLabel.FullPath => file.FullName,
+                                    Settings.NodeLabel.RelativePath => Path.GetRelativePath(
+                                        _flags.targetDir,
+                                        file.FullName
+                                    ),
+                                    _ => file.Name, // .Name included
+                                },
+                                IsFile = true, // and yes, technically it points to a file
+                                IsSymlink = true,
+                                Level = level + 1,
+                            };
+                            continue;
+                        }
+
                         string ext = file.Extension;
                         bool skipped = false;
                         if (filterByWhitelist && !_flags.extWhitelist.Contains(ext))
@@ -183,11 +201,15 @@ namespace Core
                             if (skipped)
                                 stats.skippedFiles++;
                             else
+                            {
+                                stats.files++;
                                 stats.totalSizeBytes += file.Length;
+                                Extensions[ext] = Extensions.GetValueOrDefault(ext) + 1;
+                            }
                         }
-                        Extensions[ext] = Extensions.GetValueOrDefault(ext) + 1;
                         if (skipped)
                             continue;
+
                         yield return new Node
                         {
                             Id = _currentId++,

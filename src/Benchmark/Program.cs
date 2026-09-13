@@ -14,8 +14,9 @@ namespace Benchmark
             Console.OutputEncoding = System.Text.Encoding.UTF8;
             CoreException _ex = new(ExitCode.Success, ExitMessages.Get(ExitCode.Success));
             GenFlags flags = new GenFlags();
-            string tempPath = Path.Combine(Path.GetTempPath(), "ftg_tests"),
-                benchmarksDir = "../../../../../benchmarks",
+            string rootPath = SolutionUtils.GetFTGRootPath(),
+                tempPath = Path.Combine(Path.GetTempPath(), "ftg_tests"),
+                benchmarksDir = Path.Combine(rootPath, "benchmarks"),
                 csvPath = Path.Combine(
                     benchmarksDir,
                     $"benchmark_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.csv"
