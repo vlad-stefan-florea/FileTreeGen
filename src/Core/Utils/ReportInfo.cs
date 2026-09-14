@@ -49,7 +49,7 @@ namespace Core.Utils
                             ReportNameScheme.NameDateTime => "-"
                                 + Calendar.GetDateReversed().Replace("-", "")
                                 + "-"
-                                + Calendar.GetTime().Replace(":", ""),
+                                + Calendar.GetTime().Replace(":", "").Replace(".", ""),
                             _ => null, // .NameOnly included
                         }
                     )

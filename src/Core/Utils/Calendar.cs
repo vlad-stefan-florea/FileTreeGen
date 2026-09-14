@@ -2,7 +2,7 @@
 {
     public class Calendar
     {
-        public static string GetTime() => DateTime.Now.ToString("HH:mm:ss");
+        public static string GetTime() => DateTime.Now.ToString("HH:mm:ss.fff");
 
         public static string GetDateReversed() => DateTime.Now.ToString("yyyy-MM-dd");
 

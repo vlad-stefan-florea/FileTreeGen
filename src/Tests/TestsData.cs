@@ -33,6 +33,9 @@
             ["Auto Open"] = ("--auto-open", 0),
             ["Tree Only"] = ("--tree-only", 0),
             ["Directories Filter"] = ("--filter-dirs \"bin,obj\"", 0),
+            ["Verbosity (Quiet)"] = ("--verbosity quiet", 0),
+            ["Verbosity (Normal)"] = ("-v normal", 0),
+            ["Verbosity (Verbose)"] = ("-v verbose", 0),
             #endregion
             #region EDGE CASES
             ["Max Depth (<= 0)"] = ("--max-depth -1", 200),

@@ -18,6 +18,16 @@ namespace CLI
                     "Scans the target directory and generates a report.",
                     "<target> [options]"
                 ),
+                ["app"] = new SubCmd("app", "Provides access to app utilities.", "<subcommand>"),
+            };
+            public static Dictionary<string, Cmd> Options = new()
+            {
+                ["verbosity"] = new Cmd(
+                    "--verbosity",
+                    "The verbosity level of the output messages.",
+                    nameof(Settings.Verbosity),
+                    ["-v"]
+                ),
             };
         }
 
@@ -127,6 +137,17 @@ namespace CLI
                     "--filter-dirs",
                     "The directory names to exclude from the report.",
                     nameof(GenFlags.dirBlacklist)
+                ),
+            };
+        }
+
+        public static class AppCmd
+        {
+            public static Dictionary<string, SubCmd> SubCommands = new()
+            {
+                ["cleanCrashDump"] = new SubCmd(
+                    "clean-crash-dump",
+                    "Cleans FileTreeGen's crash dump folder."
                 ),
             };
         }

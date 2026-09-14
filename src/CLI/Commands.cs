@@ -15,7 +15,7 @@ namespace CLI
         public record SubCmd(string Name, string Description, string? UsageArgs = null);
 
         // GENERATE helpers
-        public static Option<T> NewScanOption<T>(Cmd data, T defaultValue)
+        public static Option<T> NewOption<T>(Cmd data, T defaultValue)
         {
             var option = new Option<T>(data.Name) { Description = data.Description };
             if (defaultValue != null)

@@ -1,4 +1,5 @@
 ﻿using System.CommandLine;
+using System.Data;
 using Core;
 using Core.Utils;
 using Core.Writers;
@@ -10,17 +11,25 @@ namespace CLI
     {
         static GenFlags _flags = new GenFlags();
 
-        public static async Task<(CoreException, List<string>)> Run(string[] args)
+        public static async Task<(CoreException, List<string>, Verbosity)> Run(string[] args)
         {
-            List<string> errorsOut = new();
+            List<string> messagesOut = new();
             CoreException exOut = new(ExitCode.Success, ExitMessages.Get(ExitCode.Success));
+            Verbosity verbosity = Verbosity.Normal;
 
             // root
             RootCommand rootCmd = new(CommandData.RootCmd.Root.Description);
 
             // subcommands
             Command scanCmd = Commands.GenerateSubcmd(CommandData.RootCmd.SubCommands["scan"]);
+            Command appCmd = Commands.GenerateSubcmd(CommandData.RootCmd.SubCommands["app"]);
             rootCmd.Subcommands.Add(scanCmd);
+            rootCmd.Subcommands.Add(appCmd);
+            var verbosityOption = Commands.NewOption(
+                CommandData.RootCmd.Options["verbosity"],
+                Verbosity.Normal
+            );
+            rootCmd.Options.Add(verbosityOption);
 
             #region SCAN_CMD
             // target
@@ -28,26 +37,25 @@ namespace CLI
             Argument<DirectoryInfo> targetArg = new(data.Name) { Description = data.Description };
             targetArg.AcceptExistingOnly();
             scanCmd.Arguments.Add(targetArg);
-            #endregion
 
             #region OPTIONS
 
             #region Report
 
             // report type
-            var repTypeOption = Commands.NewScanOption(
+            var repTypeOption = Commands.NewOption(
                 CommandData.ScanCmd.Options["reportType"],
                 _flags.reportType
             );
             scanCmd.Options.Add(repTypeOption);
             // report name scheme
-            var reportNameOption = Commands.NewScanOption(
+            var reportNameOption = Commands.NewOption(
                 CommandData.ScanCmd.Options["reportName"],
                 _flags.reportNameScheme
             );
             scanCmd.Options.Add(reportNameOption);
             // tree only
-            var treeOnlyOption = Commands.NewScanOption(
+            var treeOnlyOption = Commands.NewOption(
                 CommandData.ScanCmd.Options["treeOnly"],
                 _flags.treeOnly
             );
@@ -57,31 +65,31 @@ namespace CLI
             #region Filtering
 
             // whitelist
-            var whitelistOption = Commands.NewScanOption(
+            var whitelistOption = Commands.NewOption(
                 CommandData.ScanCmd.Options["whitelist"],
                 string.Empty
             );
             scanCmd.Options.Add(whitelistOption);
             // blacklist
-            var blacklistOption = Commands.NewScanOption(
+            var blacklistOption = Commands.NewOption(
                 CommandData.ScanCmd.Options["blacklist"],
                 string.Empty
             );
             scanCmd.Options.Add(blacklistOption);
             // dirs only
-            var dirsOnlyOption = Commands.NewScanOption(
+            var dirsOnlyOption = Commands.NewOption(
                 CommandData.ScanCmd.Options["dirsOnly"],
                 _flags.dirsOnly
             );
             scanCmd.Options.Add(dirsOnlyOption);
             // files only
-            var filesOnlyOption = Commands.NewScanOption(
+            var filesOnlyOption = Commands.NewOption(
                 CommandData.ScanCmd.Options["filesOnly"],
                 _flags.filesOnly
             );
             scanCmd.Options.Add(filesOnlyOption);
             // dir names blacklist
-            var dirBlacklistOption = Commands.NewScanOption(
+            var dirBlacklistOption = Commands.NewOption(
                 CommandData.ScanCmd.Options["dirBlacklist"],
                 string.Empty
             );
@@ -91,25 +99,25 @@ namespace CLI
             #region Scan
 
             // ignore empty dirs
-            var emptyDirsOption = Commands.NewScanOption(
+            var emptyDirsOption = Commands.NewOption(
                 CommandData.ScanCmd.Options["ignoreEmptyDirs"],
                 _flags.ignoreEmptyDirs
             );
             scanCmd.Options.Add(emptyDirsOption);
             // ignore symlinks
-            var symlinksOption = Commands.NewScanOption(
+            var symlinksOption = Commands.NewOption(
                 CommandData.ScanCmd.Options["ignoreSymlinks"],
                 _flags.ignoreSymlinks
             );
             scanCmd.Options.Add(symlinksOption);
             // buffer size
-            var bufferOption = Commands.NewScanOption(
+            var bufferOption = Commands.NewOption(
                 CommandData.ScanCmd.Options["buffer"],
                 _flags.bufferSize
             );
             scanCmd.Options.Add(bufferOption);
             // max depth
-            var maxDepthOption = Commands.NewScanOption<int>(
+            var maxDepthOption = Commands.NewOption<int>(
                 CommandData.ScanCmd.Options["maxDepth"],
                 _flags.maxDepth
             );
@@ -133,7 +141,7 @@ namespace CLI
             });
             scanCmd.Options.Add(maxDepthOption);
             // include statistics
-            var noStatsOption = Commands.NewScanOption(
+            var noStatsOption = Commands.NewOption(
                 CommandData.ScanCmd.Options["noStats"],
                 !_flags.includeStatistics
             );
@@ -143,19 +151,19 @@ namespace CLI
             #region Presentation
 
             // node label
-            var nodeLabelOption = Commands.NewScanOption(
+            var nodeLabelOption = Commands.NewOption(
                 CommandData.ScanCmd.Options["nodeLabel"],
                 _flags.nodeLabel
             );
             scanCmd.Options.Add(nodeLabelOption);
             // report formatting
-            var noFormattingOption = Commands.NewScanOption(
+            var noFormattingOption = Commands.NewOption(
                 CommandData.ScanCmd.Options["noFormatting"],
                 !_flags.formatReport
             );
             scanCmd.Options.Add(noFormattingOption);
             // include icons
-            var noIconsOption = Commands.NewScanOption(
+            var noIconsOption = Commands.NewOption(
                 CommandData.ScanCmd.Options["noIcons"],
                 !_flags.includeIcons
             );
@@ -165,36 +173,48 @@ namespace CLI
             #region Output
 
             // output dir
-            var outOption = Commands.NewScanOption(
+            var outOption = Commands.NewOption(
                 CommandData.ScanCmd.Options["outDir"],
                 new DirectoryInfo(_flags.outDir)
             );
             outOption.AcceptExistingOnly();
             scanCmd.Options.Add(outOption);
             // auto open report
-            var autoOpenOption = Commands.NewScanOption(
+            var autoOpenOption = Commands.NewOption(
                 CommandData.ScanCmd.Options["autoOpen"],
                 _flags.autoOpenReport
             );
             scanCmd.Options.Add(autoOpenOption);
             #endregion
 
+
             #endregion
 
+            #endregion
+
+            #region APP_CMD
+            Command cleanCrashCmd = Commands.GenerateSubcmd(
+                CommandData.AppCmd.SubCommands["cleanCrashDump"]
+            );
+            cleanCrashCmd.Options.Add(verbosityOption);
+
+            #endregion
+
+
             // PARSING
-            string[] helpAliases = ["--help", "-h", "-?"];
+            string[] helpAliases = ["--help", "-h", "-?", "/h", "/?"];
             foreach (string item in helpAliases)
             {
                 if (args.Contains(item))
                 {
                     HelpMenu.DisplayHelp();
-                    return (exOut, errorsOut);
+                    return (exOut, messagesOut, verbosity);
                 }
             }
             if (args.Contains("--version"))
             {
                 Console.WriteLine(AppInfo.Version);
-                return (exOut, errorsOut);
+                return (exOut, messagesOut, verbosity);
             }
 
             ParseResult parseResult = rootCmd.Parse(args);
@@ -202,39 +222,57 @@ namespace CLI
             {
                 var errors = parseResult.Errors;
                 foreach (var e in errors)
-                    errorsOut.Add(e.Message);
+                    messagesOut.Add(e.Message);
                 exOut = new CoreException(
                     ExitCode.InvalidArgument,
                     ExitMessages.Get(ExitCode.InvalidArgument)
                 );
-                return (exOut, errorsOut);
+                return (exOut, messagesOut, verbosity);
             }
 
-            ApplyArgs(parseResult);
-            try
-            {
-                ValidateFlags();
-                await Generate();
-            }
-            catch (CoreException cex)
-            {
-                return (cex, errorsOut);
-            }
-            catch (Exception ex)
-            {
-                return (ExitMessages.TranslateOSException(ex), errorsOut);
-            }
-            if (_flags.autoOpenReport)
-                FileSystem.OpenPath(
-                    ReportInfo.GeneratePath(
-                        _flags.outDir,
-                        _flags.targetDir,
-                        _flags.reportType,
-                        _flags.reportNameScheme
-                    )
-                );
+            // VERBOSITY
+            if (parseResult.GetValue(verbosityOption) is Verbosity v)
+                verbosity = v;
 
-            return (exOut, errorsOut);
+            var chosenCmd = parseResult.CommandResult.Command;
+            switch (chosenCmd)
+            {
+                case var cmd when cmd == scanCmd:
+                {
+                    ApplyArgs(parseResult);
+                    try
+                    {
+                        ValidateFlags();
+                        await Generate();
+                    }
+                    catch (CoreException cex)
+                    {
+                        return (cex, messagesOut, verbosity);
+                    }
+                    catch (Exception ex)
+                    {
+                        return (ExitMessages.TranslateOSException(ex), messagesOut, verbosity);
+                    }
+                    if (_flags.autoOpenReport)
+                        FileSystem.OpenPath(_flags.GetOutPath());
+                    messagesOut.Add($"Report saved at: '{_flags.GetOutPath()}'");
+                    break;
+                }
+                case var cmd when cmd == cleanCrashCmd:
+                    bool res = CrashDump.CleanCrashDump();
+                    if (res)
+                        messagesOut.Add("Crash dump cleaned successfully.");
+                    else
+                    {
+                        exOut = new CoreException(
+                            ExitCode.Unknown,
+                            "Failed to clean the crash dump folder."
+                        );
+                        messagesOut.Add("Failed to clean the crash dump folder.");
+                    }
+                    break;
+            }
+            return (exOut, messagesOut, verbosity);
 
             #region HELPERS
             void ApplyArgs(ParseResult result)
@@ -358,7 +396,7 @@ namespace CLI
             }
             void ThrowIncompatible(string arg1, string arg2)
             {
-                errorsOut.Add($"'{arg1}' and '{arg2}' cannot be used at the same time.");
+                messagesOut.Add($"'{arg1}' and '{arg2}' cannot be used at the same time.");
                 throw new CoreException(
                     ExitCode.IncompatibleArguments,
                     ExitMessages.Get(ExitCode.IncompatibleArguments)
@@ -389,14 +427,6 @@ namespace CLI
                 default:
                     break;
             }
-            string outPath = ReportInfo.GeneratePath(
-                _flags.outDir,
-                _flags.targetDir,
-                _flags.reportType,
-                _flags.reportNameScheme
-            );
-            if (_flags.autoOpenReport)
-                FileSystem.OpenPath(outPath);
         }
     }
 }

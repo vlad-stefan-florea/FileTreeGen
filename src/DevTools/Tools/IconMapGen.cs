@@ -255,8 +255,7 @@ namespace DevTools.Tools
                 );
                 html.Append("</body></html>");
 
-                using StreamWriter htmlWriter = new(htmlOutPath);
-                htmlWriter.Write(html);
+                File.WriteAllText(htmlOutPath, html);
             }
         }
 

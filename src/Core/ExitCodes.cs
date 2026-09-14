@@ -83,5 +83,18 @@
         {
             Code = code;
         }
+
+        public override string ToString()
+        {
+            string baseText = $"[{Code} ({(int)Code})]: {Message}";
+
+            if (StackTrace != null)
+                baseText += $"\n[Stack Trace]:\n{StackTrace}";
+
+            if (InnerException != null)
+                baseText += $"\n\n[Inner Exception]:\n{InnerException}";
+
+            return baseText;
+        }
     }
 }

@@ -8,6 +8,7 @@ namespace Core.Utils
         public const string AppUrl = "https://github.com/vlad-stefan-florea/FileTreeGen";
         public const string Developer = "@vlad-stefan-florea";
         public static string Version { get; }
+        public static string AppDir = AppContext.BaseDirectory;
 
         static AppInfo()
         {

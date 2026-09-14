@@ -1,7 +1,5 @@
-﻿using Core;
+﻿using System.Reflection;
 using Core.Utils;
-using Core.Writers;
-using static Core.Settings;
 using static TUI.Display;
 
 namespace TUI
@@ -15,7 +13,6 @@ namespace TUI
              / __/ / / /  __/ / / /  /  __/  __/ /_/ /  __/ / / /
             /_/   /_/_/\___/_/ /_/   \___/\___/\____/\___/_/ /_/ 
             """;
-
         private static string AppHeaderInfo =
             "Version: " + AppInfo.Version + " | Developed by: " + AppInfo.Developer;
 
@@ -26,80 +23,27 @@ namespace TUI
             WriteColor(Title, ConsoleColor.Green);
             WriteColor(AppHeaderInfo, ConsoleColor.Gray);
 
-            // GenFlags
-            GenFlags flags = new GenFlags();
-
-            // target folder
-            flags.targetDir = InputHandler.AskForDir(false);
-
-            // output format
-            flags.reportType =
-                (InputHandler.ChoiceMenu<ReportType>("Please choose the report's type:"))
-                ?? flags.reportType;
-
-            // other settings prompt
-            bool advanced = InputHandler.AskYN("Edit advanced settings?", false);
-            if (advanced)
+            while (true)
             {
-                flags = AdvancedMenu.Edit(flags);
-            }
-
-            string outPath = ReportInfo.GeneratePath(
-                flags.outDir,
-                flags.targetDir,
-                flags.reportType,
-                flags.reportNameScheme
-            );
-
-            WriteMsg($"The report will be saved at: '{outPath}'", MsgType.Info);
-            WaitForInput();
-
-            switch (flags.reportType)
-            {
-                case ReportType.HTML:
-                    HtmlWriter hmtlWriter = new HtmlWriter(flags);
-                    Task hmtlWrite = hmtlWriter.WriteAsync();
-                    LoadingAnimation(hmtlWrite, "Generating report", 100, true);
-
-                    await hmtlWrite;
-                    if (hmtlWrite.IsCompletedSuccessfully)
-                        ShowSuccess();
-                    break;
-
-                case ReportType.Markdown:
-                    MarkdownWriter mdWriter = new MarkdownWriter(flags);
-                    Task mdWrite = mdWriter.WriteAsync();
-                    LoadingAnimation(mdWrite, "Generating report", 100, true);
-
-                    await mdWrite;
-                    if (mdWrite.IsCompletedSuccessfully)
-                        ShowSuccess();
-                    break;
-
-                case ReportType.Text:
-                    Core.Writers.TextWriter txtWriter = new Core.Writers.TextWriter(flags);
-                    Task txtWrite = txtWriter.WriteAsync();
-                    LoadingAnimation(txtWrite, "Generating report", 100, true);
-
-                    await txtWrite;
-                    if (txtWrite.IsCompletedSuccessfully)
-                        ShowSuccess();
-                    break;
-
-                default:
-                    break;
-            }
-            if (flags.autoOpenReport)
-                FileSystem.OpenPath(outPath);
-            else
-            {
-                bool ans = InputHandler.AskYN("Open the report?", true);
-                if (ans)
-                    FileSystem.OpenPath(outPath);
+                ModeOption? mode = InputHandler.ChoiceMenu<ModeOption>("What do you wish to do?");
+                switch (mode)
+                {
+                    case ModeOption.Generate_Folder_Reports:
+                        await Modes.Scan.Start();
+                        break;
+                    case ModeOption.App_Utilities:
+                        Modes.AppUtilities.Start();
+                        break;
+                    default:
+                        return;
+                }
             }
         }
+    }
 
-        private static void ShowSuccess() =>
-            WriteMsg("REPORT GENERATED SUCCESSFULY", MsgType.Success);
+    enum ModeOption
+    {
+        Generate_Folder_Reports,
+        App_Utilities,
     }
 }

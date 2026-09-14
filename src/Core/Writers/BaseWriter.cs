@@ -22,12 +22,7 @@ namespace Core.Writers
 
         public async Task WriteAsync()
         {
-            string finalPath = Utils.ReportInfo.GeneratePath(
-                _flags.outDir,
-                _flags.targetDir,
-                _flags.reportType,
-                _flags.reportNameScheme
-            );
+            string finalPath = _flags.GetOutPath();
             string tempPath =
                 (!_flags.includeStatistics || _flags.treeOnly) ? finalPath : Path.GetTempFileName();
             // ^ if no statistics should be generated:

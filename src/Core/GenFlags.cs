@@ -1,9 +1,16 @@
-﻿using static Core.Settings;
+﻿using Core.Utils;
+using static Core.Settings;
 
 namespace Core
 {
     public class GenFlags
     {
+        // folder paths
+        private static string userprofile = Environment.GetFolderPath(
+                Environment.SpecialFolder.UserProfile
+            ),
+            downloadsDir = Path.Combine(userprofile, "downloads");
+
         // constructor
         public GenFlags() { }
 
@@ -47,11 +54,10 @@ namespace Core
 
         #endregion
 
-        // folder paths
-        private static string userprofile = Environment.GetFolderPath(
-                Environment.SpecialFolder.UserProfile
-            ),
-            downloadsDir = Path.Join(userprofile, "downloads");
+
+        // helpers
+        public string GetOutPath() =>
+            ReportInfo.GeneratePath(outDir, targetDir, reportType, reportNameScheme);
 
         // copy
         public GenFlags(GenFlags Base)

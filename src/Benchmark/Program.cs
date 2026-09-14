@@ -64,9 +64,8 @@ namespace Benchmark
             async Task PerformTests(TestData[] data, string rootPath)
             {
                 Stopwatch sw = new();
-                using StreamWriter csvWriter = new(csvPath);
-
-                csvWriter.WriteLine(
+                File.WriteAllText(
+                    csvPath,
                     "Dataset;Files;Folders;Depth;Report Type;Time (Ms);Peak Ram (MB);Report Size;Files/Second"
                 );
                 flags.outDir = rootPath;
@@ -126,17 +125,13 @@ namespace Benchmark
                         cts.Cancel();
                         await monitor;
 
-                        string outPath = ReportInfo.GeneratePath(
-                            flags.outDir,
-                            flags.targetDir,
-                            flags.reportType,
-                            flags.reportNameScheme
-                        );
+                        string outPath = flags.GetOutPath();
                         FileInfo outFile = new FileInfo(outPath);
                         string size = FileSystem.ComputeSize(outFile.Length);
                         long ram = peakRam / 1024 / 1024;
                         // Data Set | Files | Folders | Depth | Report Type | Time (Ms) | Peak Ram (MB) | Report Size | Files/Second
-                        csvWriter.WriteLine(
+                        File.AppendAllText(
+                            csvPath,
                             $"{set.Label};{set.Files};{set.Dirs};{set.MaxDepth};{type};{sw.ElapsedMilliseconds};{ram};{size};{((double)set.Files / sw.ElapsedMilliseconds * 1000).ToString(
                                     "#0.00"
                                 )}"

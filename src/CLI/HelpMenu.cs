@@ -6,19 +6,27 @@ namespace CLI
 {
     internal class HelpMenu
     {
+        static int defaultPadding = 10;
+
         public static void DisplayHelp()
         {
-            int defaultPadding = 10;
             // root command
             Console.WriteLine(RootCmd.Root.Description);
             WriteColor("USAGE", ConsoleColor.Cyan);
             WriteColor("   " + RootCmd.Root.Name, ConsoleColor.Yellow, newLine: false);
-            WriteColor(" <subcommand> [arguments] [options]", ConsoleColor.Gray);
+            WriteColor("[global options] <subcommand>", ConsoleColor.Gray);
             Console.WriteLine();
+
+            // globbal options
+            WriteColor("GLOBAL OPTIONS", ConsoleColor.Cyan);
+            int maxNameLength = ScanCmd.Options.Values.Max(x =>
+                x.Name.Length + (x.Aliases != null ? x.Aliases.Sum(alias => alias.Length + 2) : 0)
+            );
+            DisplayOptions(RootCmd.Options.Values);
 
             // subcommands
             WriteColor("SUBCOMMANDS", ConsoleColor.Cyan);
-            int maxNameLength = RootCmd.SubCommands.Values.Max(x =>
+            maxNameLength = RootCmd.SubCommands.Values.Max(x =>
                 x.Name.Length + x.UsageArgs.Length + 1
             );
             foreach (var subcmd in RootCmd.SubCommands.Values)
@@ -48,7 +56,7 @@ namespace CLI
             WriteColor(RootCmd.SubCommands["scan"].UsageArgs, ConsoleColor.Gray);
             Console.WriteLine();
             // arguments
-            WriteColor("ARGUMENTS:", ConsoleColor.Cyan);
+            WriteColor("SCAN ARGUMENTS:", ConsoleColor.Cyan);
             maxNameLength = ScanCmd.Arguments.Values.Max(x => x.Name.Length);
             foreach (var arg in ScanCmd.Arguments.Values.OrderBy(x => x.Name))
             {
@@ -60,12 +68,43 @@ namespace CLI
             }
             // options
             Console.WriteLine();
-            WriteColor("OPTIONS:", ConsoleColor.Cyan);
+            WriteColor("SCAN OPTIONS:", ConsoleColor.Cyan);
+            DisplayOptions(ScanCmd.Options.Values);
 
-            maxNameLength = ScanCmd.Options.Values.Max(x =>
+            #endregion
+
+            #region APP_SUBCMD
+            Console.WriteLine();
+            WriteColor("APP SUBCOMMAND USAGE:", ConsoleColor.Cyan);
+            WriteColor(
+                "   " + RootCmd.SubCommands["app"].Name + ' ',
+                ConsoleColor.Yellow,
+                newLine: false
+            );
+            WriteColor(RootCmd.SubCommands["app"].UsageArgs, ConsoleColor.Gray);
+            Console.WriteLine();
+
+            // subcommands
+            WriteColor("APP SUBCOMMANDS", ConsoleColor.Cyan);
+            maxNameLength = AppCmd.SubCommands.Values.Max(x => x.Name.Length + 1);
+            foreach (var subcmd in AppCmd.SubCommands.Values)
+            {
+                WriteColor("   " + subcmd.Name + ' ', ConsoleColor.Yellow, newLine: false);
+                Console.WriteLine(
+                    new string(' ', maxNameLength - subcmd.Name.Length - 1 + defaultPadding)
+                        + subcmd.Description
+                );
+            }
+
+            #endregion
+        }
+
+        private static void DisplayOptions(IEnumerable<Cmd> data)
+        {
+            int maxNameLength = data.Max(x =>
                 x.Name.Length + (x.Aliases != null ? x.Aliases.Sum(alias => alias.Length + 2) : 0)
             );
-            foreach (var opt in ScanCmd.Options.Values.OrderBy(x => x.Name))
+            foreach (var opt in data.OrderBy(x => x.Name))
             {
                 int aliasesLength = 0;
                 var type = GetFlagType(opt.FlagName);
@@ -111,7 +150,6 @@ namespace CLI
                         ) + opt.Description
                     );
             }
-            #endregion
         }
     }
 }

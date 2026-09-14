@@ -1,4 +1,6 @@
-﻿using Core;
+﻿using System.Diagnostics;
+using Core;
+using Core.Utils;
 using static TUI.Display;
 using static TUI.InputHandler;
 
@@ -10,18 +12,18 @@ namespace Launcher
         {
             Console.OutputEncoding = System.Text.Encoding.UTF8;
             CoreException _ex = new(ExitCode.Success, ExitMessages.Get(ExitCode.Success));
-            (CoreException Ex, List<string> Errors) silentResult = new();
-            bool needsCLI = args.Length == 0;
+            (CoreException Ex, List<string> Messages, Settings.Verbosity Verbo) CLIResult = new();
+            bool needsTUI = args.Length == 0;
             try
             {
-                if (needsCLI)
+                if (needsTUI)
                 {
                     await TUI.Main.Run();
                 }
                 else
                 {
-                    silentResult = await CLI.Main.Run(args);
-                    _ex = silentResult.Ex;
+                    CLIResult = await CLI.Main.Run(args);
+                    _ex = CLIResult.Ex;
                 }
             }
             catch (CoreException ex)
@@ -36,59 +38,89 @@ namespace Launcher
             {
                 if (_ex.Code != ExitCode.Success)
                 {
-                    if (needsCLI)
+                    var dump = CrashDump.GenerateDump(_ex);
+                    string? trace = _ex.InnerException?.StackTrace ?? _ex.StackTrace;
+
+                    if (needsTUI)
                     {
-                        WriteMsg($"[{_ex.Code}]: {_ex.Message}", MsgType.Error);
+                        WriteMsg($"[{(int)_ex.Code} ({_ex.Code})]: {_ex.Message}", MsgType.Error);
                         bool errDetails = AskYN(
                             "Do you want to see the detailed error information?",
                             false
                         );
                         if (errDetails)
                         {
-                            WriteMsg("[CODE]: " + (int)_ex.Code + $" ({_ex.Code})", MsgType.Error);
-                            WriteMsg("[DESCRIPTION]: " + _ex.Code, MsgType.Error);
+                            if (dump.Success)
+                                WriteMsg($"Crash dump saved at: '{dump.FilePath}'", MsgType.Info);
+                            WriteColor(
+                                "[CODE]: " + (int)_ex.Code + $" ({_ex.Code})",
+                                ConsoleColor.Red
+                            );
+                            WriteColor("[DESCRIPTION]: " + _ex.Message, ConsoleColor.Red);
+                            if (trace != null)
+                            {
+                                WriteColor("[STACK TRACE]:\n" + trace, ConsoleColor.Red);
+                            }
                             if (_ex.InnerException != null)
                             {
-                                WriteMsg(
+                                WriteColor(
                                     "[INNER MESSAGE]:\n" + _ex.InnerException.Message,
-                                    MsgType.Error
-                                );
-                                WriteMsg(
-                                    "[INNER STACK TRACE]:\n" + _ex.InnerException.StackTrace,
-                                    MsgType.Error
+                                    ConsoleColor.Red
                                 );
                             }
                         }
                     }
                     else
                     {
-                        WriteColor(
-                            "[ERROR]: " + (int)_ex.Code + $" ({_ex.Code})",
-                            ConsoleColor.Red
-                        );
-                        WriteColor("[DESCRIPTION]: " + _ex.Message, ConsoleColor.Red);
-                        WriteColor("[DETAILS]:", ConsoleColor.Blue);
-                        if (silentResult.Errors?.Count > 0)
+                        if (CLIResult.Verbo != Settings.Verbosity.Quiet) // normal OR verbose
                         {
-                            int c = 1;
-                            foreach (var err in silentResult.Errors)
+                            WriteColor(
+                                "[ERROR]: " + (int)_ex.Code + $" ({_ex.Code})",
+                                ConsoleColor.Red
+                            );
+                            WriteColor("[DESCRIPTION]: " + _ex.Message, ConsoleColor.Red);
+
+                            if (CLIResult.Verbo != Settings.Verbosity.Normal) // verbose
                             {
-                                Console.Write($"[{c}] ");
-                                WriteColor(err, ConsoleColor.Red);
-                                c++;
+                                WriteColor("[DETAILS]:", ConsoleColor.Blue);
+                                if (CLIResult.Messages != null && CLIResult.Messages.Count > 0)
+                                {
+                                    int c = 1;
+                                    foreach (var err in CLIResult.Messages)
+                                    {
+                                        Console.Write($"[{c}] ");
+                                        WriteColor(err, ConsoleColor.Red);
+                                        c++;
+                                    }
+                                }
+                                if (trace != null)
+                                {
+                                    WriteColor("[STACK TRACE]:\n" + trace, ConsoleColor.Red);
+                                }
+                                if (_ex.InnerException != null)
+                                {
+                                    WriteColor(
+                                        "[INNER MESSAGE]:\n" + _ex.InnerException.Message,
+                                        ConsoleColor.Red
+                                    );
+                                }
+                                if (dump.Success)
+                                    WriteColor(
+                                        $"[INFO] Crash dump saved at: '{dump.FilePath}'",
+                                        ConsoleColor.Blue
+                                    );
                             }
                         }
-                        if (_ex.InnerException != null)
-                        {
-                            WriteColor(
-                                "[INNER MESSAGE]:\n" + _ex.InnerException.Message,
-                                ConsoleColor.Red
-                            );
-                            WriteColor(
-                                "[INNER STACK TRACE]:\n" + _ex.InnerException.StackTrace,
-                                ConsoleColor.Red
-                            );
-                        }
+                    }
+                }
+                else if (!needsTUI) // was successful but from CLI
+                {
+                    if (CLIResult.Verbo != Settings.Verbosity.Quiet) // normal OR verbose
+                    {
+                        if (CLIResult.Verbo != Settings.Verbosity.Normal) // verbose
+                            if (CLIResult.Messages != null && CLIResult.Messages.Count > 0)
+                                foreach (string msg in CLIResult.Messages)
+                                    WriteColor($"[INFO] " + msg, ConsoleColor.Blue);
                     }
                 }
             }
