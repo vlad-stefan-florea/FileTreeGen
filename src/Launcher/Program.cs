@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using Core;
+﻿using Core;
 using Core.Utils;
 using static TUI.Display;
 using static TUI.InputHandler;
@@ -11,6 +10,7 @@ namespace Launcher
         static async Task Main(string[] args)
         {
             Console.OutputEncoding = System.Text.Encoding.UTF8;
+            Console.InputEncoding = System.Text.Encoding.UTF8;
             CoreException _ex = new(ExitCode.Success, ExitMessages.Get(ExitCode.Success));
             (CoreException Ex, List<string> Messages, Settings.Verbosity Verbo) CLIResult = new();
             bool needsTUI = args.Length == 0;

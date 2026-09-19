@@ -1,6 +1,4 @@
-﻿using System.CommandLine;
-using System.Data;
-using Core;
+﻿using Core;
 using Core.Utils;
 using Core.Writers;
 using static Core.Settings;
@@ -16,190 +14,6 @@ namespace CLI
             List<string> messagesOut = new();
             CoreException exOut = new(ExitCode.Success, ExitMessages.Get(ExitCode.Success));
             Verbosity verbosity = Verbosity.Normal;
-
-            // root
-            RootCommand rootCmd = new(CommandData.RootCmd.Root.Description);
-
-            // subcommands
-            Command scanCmd = Commands.GenerateSubcmd(CommandData.RootCmd.SubCommands["scan"]);
-            Command appCmd = Commands.GenerateSubcmd(CommandData.RootCmd.SubCommands["app"]);
-            rootCmd.Subcommands.Add(scanCmd);
-            rootCmd.Subcommands.Add(appCmd);
-            var verbosityOption = Commands.NewOption(
-                CommandData.RootCmd.Options["verbosity"],
-                Verbosity.Normal
-            );
-            rootCmd.Options.Add(verbosityOption);
-
-            #region SCAN_CMD
-            // target
-            var data = CommandData.ScanCmd.Arguments["target"];
-            Argument<DirectoryInfo> targetArg = new(data.Name) { Description = data.Description };
-            targetArg.AcceptExistingOnly();
-            scanCmd.Arguments.Add(targetArg);
-
-            #region OPTIONS
-
-            #region Report
-
-            // report type
-            var repTypeOption = Commands.NewOption(
-                CommandData.ScanCmd.Options["reportType"],
-                _flags.reportType
-            );
-            scanCmd.Options.Add(repTypeOption);
-            // report name scheme
-            var reportNameOption = Commands.NewOption(
-                CommandData.ScanCmd.Options["reportName"],
-                _flags.reportNameScheme
-            );
-            scanCmd.Options.Add(reportNameOption);
-            // tree only
-            var treeOnlyOption = Commands.NewOption(
-                CommandData.ScanCmd.Options["treeOnly"],
-                _flags.treeOnly
-            );
-            scanCmd.Options.Add(treeOnlyOption);
-
-            #endregion
-            #region Filtering
-
-            // whitelist
-            var whitelistOption = Commands.NewOption(
-                CommandData.ScanCmd.Options["whitelist"],
-                string.Empty
-            );
-            scanCmd.Options.Add(whitelistOption);
-            // blacklist
-            var blacklistOption = Commands.NewOption(
-                CommandData.ScanCmd.Options["blacklist"],
-                string.Empty
-            );
-            scanCmd.Options.Add(blacklistOption);
-            // dirs only
-            var dirsOnlyOption = Commands.NewOption(
-                CommandData.ScanCmd.Options["dirsOnly"],
-                _flags.dirsOnly
-            );
-            scanCmd.Options.Add(dirsOnlyOption);
-            // files only
-            var filesOnlyOption = Commands.NewOption(
-                CommandData.ScanCmd.Options["filesOnly"],
-                _flags.filesOnly
-            );
-            scanCmd.Options.Add(filesOnlyOption);
-            // dir names blacklist
-            var dirBlacklistOption = Commands.NewOption(
-                CommandData.ScanCmd.Options["dirBlacklist"],
-                string.Empty
-            );
-            scanCmd.Options.Add(dirBlacklistOption);
-
-            #endregion
-            #region Scan
-
-            // ignore empty dirs
-            var emptyDirsOption = Commands.NewOption(
-                CommandData.ScanCmd.Options["ignoreEmptyDirs"],
-                _flags.ignoreEmptyDirs
-            );
-            scanCmd.Options.Add(emptyDirsOption);
-            // ignore symlinks
-            var symlinksOption = Commands.NewOption(
-                CommandData.ScanCmd.Options["ignoreSymlinks"],
-                _flags.ignoreSymlinks
-            );
-            scanCmd.Options.Add(symlinksOption);
-            // buffer size
-            var bufferOption = Commands.NewOption(
-                CommandData.ScanCmd.Options["buffer"],
-                _flags.bufferSize
-            );
-            scanCmd.Options.Add(bufferOption);
-            // max depth
-            var maxDepthOption = Commands.NewOption<int>(
-                CommandData.ScanCmd.Options["maxDepth"],
-                _flags.maxDepth
-            );
-            maxDepthOption.Validators.Add(result =>
-            {
-                string? rawValue = result.Tokens.FirstOrDefault()?.Value;
-                if (rawValue is not null)
-                {
-                    if (!int.TryParse(rawValue, out int value))
-                    {
-                        result.AddError($"The value '{rawValue}' is not a valid integer.");
-                        return;
-                    }
-                    if (value < 1)
-                    {
-                        result.AddError(
-                            $"The maximum scan depth can be any number from 1 to {int.MaxValue}."
-                        );
-                    }
-                }
-            });
-            scanCmd.Options.Add(maxDepthOption);
-            // include statistics
-            var noStatsOption = Commands.NewOption(
-                CommandData.ScanCmd.Options["noStats"],
-                !_flags.includeStatistics
-            );
-            scanCmd.Options.Add(noStatsOption);
-
-            #endregion
-            #region Presentation
-
-            // node label
-            var nodeLabelOption = Commands.NewOption(
-                CommandData.ScanCmd.Options["nodeLabel"],
-                _flags.nodeLabel
-            );
-            scanCmd.Options.Add(nodeLabelOption);
-            // report formatting
-            var noFormattingOption = Commands.NewOption(
-                CommandData.ScanCmd.Options["noFormatting"],
-                !_flags.formatReport
-            );
-            scanCmd.Options.Add(noFormattingOption);
-            // include icons
-            var noIconsOption = Commands.NewOption(
-                CommandData.ScanCmd.Options["noIcons"],
-                !_flags.includeIcons
-            );
-            scanCmd.Options.Add(noIconsOption);
-
-            #endregion
-            #region Output
-
-            // output dir
-            var outOption = Commands.NewOption(
-                CommandData.ScanCmd.Options["outDir"],
-                new DirectoryInfo(_flags.outDir)
-            );
-            outOption.AcceptExistingOnly();
-            scanCmd.Options.Add(outOption);
-            // auto open report
-            var autoOpenOption = Commands.NewOption(
-                CommandData.ScanCmd.Options["autoOpen"],
-                _flags.autoOpenReport
-            );
-            scanCmd.Options.Add(autoOpenOption);
-            #endregion
-
-
-            #endregion
-
-            #endregion
-
-            #region APP_CMD
-            Command cleanCrashCmd = Commands.GenerateSubcmd(
-                CommandData.AppCmd.SubCommands["cleanCrashDump"]
-            );
-            cleanCrashCmd.Options.Add(verbosityOption);
-
-            #endregion
-
 
             // PARSING
             string[] helpAliases = ["--help", "-h", "-?", "/h", "/?"];
@@ -217,163 +31,20 @@ namespace CLI
                 return (exOut, messagesOut, verbosity);
             }
 
-            ParseResult parseResult = rootCmd.Parse(args);
-            if (parseResult.Errors.Count > 0)
-            {
-                var errors = parseResult.Errors;
-                foreach (var e in errors)
-                    messagesOut.Add(e.Message);
-                exOut = new CoreException(
-                    ExitCode.InvalidArgument,
-                    ExitMessages.Get(ExitCode.InvalidArgument)
-                );
-                return (exOut, messagesOut, verbosity);
-            }
-
-            // VERBOSITY
-            if (parseResult.GetValue(verbosityOption) is Verbosity v)
-                verbosity = v;
-
-            var chosenCmd = parseResult.CommandResult.Command;
-            switch (chosenCmd)
-            {
-                case var cmd when cmd == scanCmd:
-                {
-                    ApplyArgs(parseResult);
-                    try
-                    {
-                        ValidateFlags();
-                        await Generate();
-                    }
-                    catch (CoreException cex)
-                    {
-                        return (cex, messagesOut, verbosity);
-                    }
-                    catch (Exception ex)
-                    {
-                        return (ExitMessages.TranslateOSException(ex), messagesOut, verbosity);
-                    }
-                    if (_flags.autoOpenReport)
-                        FileSystem.OpenPath(_flags.GetOutPath());
-                    messagesOut.Add($"Report saved at: '{_flags.GetOutPath()}'");
-                    break;
-                }
-                case var cmd when cmd == cleanCrashCmd:
-                    bool res = CrashDump.CleanCrashDump();
-                    if (res)
-                        messagesOut.Add("Crash dump cleaned successfully.");
-                    else
-                    {
-                        exOut = new CoreException(
-                            ExitCode.Unknown,
-                            "Failed to clean the crash dump folder."
-                        );
-                        messagesOut.Add("Failed to clean the crash dump folder.");
-                    }
-                    break;
-            }
             return (exOut, messagesOut, verbosity);
 
             #region HELPERS
-            void ApplyArgs(ParseResult result)
+
+            void ValidateFlags(GenFlags flags)
             {
-                // TARGET DIR
-                if (result.GetValue(targetArg) is DirectoryInfo targetDir)
-                    _flags.targetDir = targetDir.FullName;
-
-                // REPORT TYPE
-                if (result.GetValue(repTypeOption) is ReportType type)
-                    _flags.reportType = type;
-
-                // OUT DIR
-                if (result.GetValue(outOption) is DirectoryInfo outDir)
-                    _flags.outDir = outDir.FullName;
-
-                // BUFFER SIZE
-                if (result.GetValue(bufferOption) is BufferSize value)
-                {
-                    _flags.bufferSize = value;
-                }
-
-                // REPORT NAME SCHEME
-                if (result.GetValue(reportNameOption) is ReportNameScheme scheme)
-                    _flags.reportNameScheme = scheme;
-
-                // NODE LABEL
-                if (result.GetValue(nodeLabelOption) is NodeLabel label)
-                    _flags.nodeLabel = label;
-
-                // WHITELIST
-                if (result.GetValue(whitelistOption) is string whitelist)
-                    _flags.extWhitelist = HashSetParser.FromString(
-                        whitelist,
-                        HashSetParser.HashSetType.Extensions
-                    );
-
-                // BLACKLIST
-                if (result.GetValue(blacklistOption) is string blacklist)
-                    _flags.extBlacklist = HashSetParser.FromString(
-                        blacklist,
-                        HashSetParser.HashSetType.Extensions
-                    );
-
-                // DIR NAMES BLACKLIST
-                if (result.GetValue(dirBlacklistOption) is string dirBlacklist)
-                    _flags.dirBlacklist = HashSetParser.FromString(
-                        dirBlacklist,
-                        HashSetParser.HashSetType.DirNames
-                    );
-
-                // DIRS ONLY
-                if (result.GetValue(dirsOnlyOption) is bool dirsOnly)
-                    _flags.dirsOnly = dirsOnly;
-
-                // FILES ONLY
-                if (result.GetValue(filesOnlyOption) is bool filesOnly)
-                    _flags.filesOnly = filesOnly;
-
-                // MAX DEPTH
-                if (result.GetValue(maxDepthOption) is int maxDepth)
-                    _flags.maxDepth = maxDepth;
-
-                // IGNORE EMPTY DIRS
-                if (result.GetValue(emptyDirsOption) is bool ignoreEmpty)
-                    _flags.ignoreEmptyDirs = ignoreEmpty;
-
-                // SYMLINKS
-                if (result.GetValue(symlinksOption) is bool ignoreSymlinks)
-                    _flags.ignoreSymlinks = ignoreSymlinks;
-
-                // NO STATISTICS
-                if (result.GetValue(noStatsOption) is bool noStats)
-                    _flags.includeStatistics = !noStats;
-
-                // NO FORMATTING
-                if (result.GetValue(noFormattingOption) is bool noFormatting)
-                    _flags.formatReport = !noFormatting;
-
-                // NO ICONS
-                if (result.GetValue(noIconsOption) is bool noIcons)
-                    _flags.includeIcons = !noIcons;
-
-                // AUTO OPEN
-                if (result.GetValue(autoOpenOption) is bool autoOpen)
-                    _flags.autoOpenReport = autoOpen;
-
-                // TREE ONLY
-                if (result.GetValue(treeOnlyOption) is bool treeOnly)
-                    _flags.treeOnly = treeOnly;
-            }
-            void ValidateFlags()
-            {
-                bool onlyFiles = _flags.filesOnly,
-                    onlyDirs = _flags.dirsOnly,
-                    ignoreEmptyDirs = _flags.ignoreEmptyDirs,
-                    byWhitelist = _flags.extWhitelist.Count > 0,
-                    byBlacklist = _flags.extBlacklist.Count > 0,
-                    dontFormat = !_flags.formatReport,
-                    treeOnly = _flags.treeOnly,
-                    includeStats = _flags.includeStatistics;
+                bool onlyFiles = flags.filesOnly,
+                    onlyDirs = flags.dirsOnly,
+                    ignoreEmptyDirs = flags.ignoreEmptyDirs,
+                    byWhitelist = flags.extWhitelist.Count > 0,
+                    byBlacklist = flags.extBlacklist.Count > 0,
+                    dontFormat = !flags.formatReport,
+                    treeOnly = flags.treeOnly,
+                    includeStats = flags.includeStatistics;
 
                 if (byWhitelist && byBlacklist)
                     ThrowIncompatible("Whitelist", "Blacklist");
@@ -385,13 +56,13 @@ namespace CLI
                     ThrowIncompatible("Files Only", "Dirs Only");
                 if (onlyFiles && ignoreEmptyDirs)
                     ThrowIncompatible("Files Only", "Ignore Empty Dirs");
-                if (_flags.reportType == ReportType.HTML && dontFormat)
+                if (flags.reportType == ReportType.HTML && dontFormat)
                     ThrowIncompatible("HTML Report", "No Report Formatting");
-                if (dontFormat && _flags.includeIcons)
-                    _flags.includeIcons = false; // no icons are used if 'no formatting' is active
+                if (dontFormat && flags.includeIcons)
+                    flags.includeIcons = false; // no icons are used if 'no formatting' is active
                 if (treeOnly && includeStats) // treeOnly has priority
-                    _flags.includeStatistics = false;
-                if (treeOnly && _flags.reportType == ReportType.HTML)
+                    flags.includeStatistics = false;
+                if (treeOnly && flags.reportType == ReportType.HTML)
                     ThrowIncompatible("HTML Report", "Tree Only");
             }
             void ThrowIncompatible(string arg1, string arg2)

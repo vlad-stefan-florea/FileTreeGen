@@ -1,5 +1,6 @@
-﻿using static CLI.CommandData;
-using static CLI.Commands;
+﻿using Core.Utils;
+using static CLI.CommandData;
+using static CLI.Types;
 using static TUI.Display;
 
 namespace CLI
@@ -10,105 +11,78 @@ namespace CLI
 
         public static void DisplayHelp()
         {
-            // root command
-            Console.WriteLine(RootCmd.Root.Description);
-            WriteColor("USAGE", ConsoleColor.Cyan);
-            WriteColor("   " + RootCmd.Root.Name, ConsoleColor.Yellow, newLine: false);
-            WriteColor("[global options] <subcommand>", ConsoleColor.Gray);
+            string msg = $"FileTreeGen v{AppInfo.Version} - HELP MENU";
+            DrawLine('-', msg.Length + 2);
+            Console.WriteLine(msg);
+            DrawLine('-', msg.Length + 2);
+            DisplayCommand(Root.Cmd, 0);
             Console.WriteLine();
-
-            // globbal options
-            WriteColor("GLOBAL OPTIONS", ConsoleColor.Cyan);
-            int maxNameLength = ScanCmd.Options.Values.Max(x =>
-                x.Name.Length + (x.Aliases != null ? x.Aliases.Sum(alias => alias.Length + 2) : 0)
-            );
-            DisplayOptions(RootCmd.Options.Values);
-
-            // subcommands
-            WriteColor("SUBCOMMANDS", ConsoleColor.Cyan);
-            maxNameLength = RootCmd.SubCommands.Values.Max(x =>
-                x.Name.Length + x.UsageArgs.Length + 1
-            );
-            foreach (var subcmd in RootCmd.SubCommands.Values)
-            {
-                WriteColor("   " + subcmd.Name + ' ', ConsoleColor.Yellow, newLine: false);
-                WriteColor(subcmd.UsageArgs, ConsoleColor.Gray, newLine: false);
-                Console.WriteLine(
-                    new string(
-                        ' ',
-                        maxNameLength
-                            - subcmd.Name.Length
-                            - subcmd.UsageArgs.Length
-                            - 1
-                            + defaultPadding
-                    ) + subcmd.Description
-                );
-            }
-
-            #region SCAN_SUBCMD
-            Console.WriteLine();
-            WriteColor("SCAN SUBCOMMAND USAGE:", ConsoleColor.Cyan);
-            WriteColor(
-                "   " + RootCmd.SubCommands["scan"].Name + ' ',
-                ConsoleColor.Yellow,
-                newLine: false
-            );
-            WriteColor(RootCmd.SubCommands["scan"].UsageArgs, ConsoleColor.Gray);
-            Console.WriteLine();
-            // arguments
-            WriteColor("SCAN ARGUMENTS:", ConsoleColor.Cyan);
-            maxNameLength = ScanCmd.Arguments.Values.Max(x => x.Name.Length);
-            foreach (var arg in ScanCmd.Arguments.Values.OrderBy(x => x.Name))
-            {
-                WriteColor("   " + arg.Name, ConsoleColor.Magenta, newLine: false);
-                Console.WriteLine(
-                    new string(' ', maxNameLength - arg.Name.Length + defaultPadding)
-                        + arg.Description
-                );
-            }
-            // options
-            Console.WriteLine();
-            WriteColor("SCAN OPTIONS:", ConsoleColor.Cyan);
-            DisplayOptions(ScanCmd.Options.Values);
-
-            #endregion
-
-            #region APP_SUBCMD
-            Console.WriteLine();
-            WriteColor("APP SUBCOMMAND USAGE:", ConsoleColor.Cyan);
-            WriteColor(
-                "   " + RootCmd.SubCommands["app"].Name + ' ',
-                ConsoleColor.Yellow,
-                newLine: false
-            );
-            WriteColor(RootCmd.SubCommands["app"].UsageArgs, ConsoleColor.Gray);
-            Console.WriteLine();
-
-            // subcommands
-            WriteColor("APP SUBCOMMANDS", ConsoleColor.Cyan);
-            maxNameLength = AppCmd.SubCommands.Values.Max(x => x.Name.Length + 1);
-            foreach (var subcmd in AppCmd.SubCommands.Values)
-            {
-                WriteColor("   " + subcmd.Name + ' ', ConsoleColor.Yellow, newLine: false);
-                Console.WriteLine(
-                    new string(' ', maxNameLength - subcmd.Name.Length - 1 + defaultPadding)
-                        + subcmd.Description
-                );
-            }
-
-            #endregion
         }
 
-        private static void DisplayOptions(IEnumerable<Cmd> data)
+        private static void DisplayCommand(Command cmd, int level)
+        {
+            Console.Write(new string(' ', level * 3));
+            WriteColor(cmd.Name, ConsoleColor.Blue, newLine: false);
+            WriteColor(" USAGE", ConsoleColor.Cyan);
+            Console.Write(new string(' ', (level + 1) * 3));
+            WriteColor(cmd.Syntax, ConsoleColor.Yellow, newLine: false);
+
+            bool hasArgs = cmd.Arguments != null && cmd.Arguments.Count != 0,
+                hasOptions = cmd.Options != null && cmd.Options.Count != 0,
+                hasSubcmds = cmd.Subcommands != null && cmd.Subcommands.Count != 0;
+
+            // arguments
+            string args = string.Empty;
+            if (hasArgs)
+            {
+                args = " ";
+                args += string.Join(' ', cmd.Arguments.Select(x => x.Placeholder).ToArray());
+                WriteColor(args, ConsoleColor.Gray, newLine: false);
+            }
+            Console.WriteLine(new string(' ', defaultPadding) + cmd.Description);
+            if (hasArgs)
+            {
+                WriteColor(new string(' ', (level + 1) * 3) + "Arguments:", ConsoleColor.Cyan);
+                int maxNameLength = cmd.Arguments.Max(x => x.Placeholder.Length);
+                foreach (var arg in cmd.Arguments)
+                {
+                    Console.Write(new string(' ', (level + 2) * 3));
+                    WriteColor(arg.Placeholder, ConsoleColor.Gray, newLine: false);
+                    Console.WriteLine(
+                        new string(' ', maxNameLength - arg.Placeholder.Length + defaultPadding)
+                            + arg.Description
+                    );
+                }
+            }
+
+            // options
+            if (hasOptions)
+            {
+                WriteColor(new string(' ', (level + 1) * 3) + "Options:", ConsoleColor.Cyan);
+                DisplayOptions(cmd.Options, level);
+            }
+
+            // subcommands
+            if (hasSubcmds)
+            {
+                WriteColor(new string(' ', (level + 1) * 3) + "Subcommands:", ConsoleColor.Cyan);
+
+                foreach (var subcmd in cmd.Subcommands)
+                    DisplayCommand(subcmd, level + 2);
+            }
+        }
+
+        private static void DisplayOptions(List<Option> data, int level)
         {
             int maxNameLength = data.Max(x =>
-                x.Name.Length + (x.Aliases != null ? x.Aliases.Sum(alias => alias.Length + 2) : 0)
+                x.Syntax.Length + (x.Aliases != null ? x.Aliases.Sum(alias => alias.Length + 2) : 0)
             );
-            foreach (var opt in data.OrderBy(x => x.Name))
+            foreach (var opt in data.OrderBy(x => x.Syntax))
             {
                 int aliasesLength = 0;
                 var type = GetFlagType(opt.FlagName);
-                WriteColor("   " + opt.Name, ConsoleColor.Magenta, newLine: false);
+                Console.Write(new string(' ', (level + 2) * 3));
+                WriteColor(opt.Syntax, ConsoleColor.Magenta, newLine: false);
                 if (opt.Aliases != null)
                 {
                     foreach (string a in opt.Aliases)
@@ -126,30 +100,27 @@ namespace CLI
                         new string(
                             ' ',
                             maxNameLength
-                                - opt.Name.Length
+                                - opt.Syntax.Length
                                 - aliasesLength
                                 - placeholder.Length
                                 + defaultPadding
                         ) + opt.Description
                     );
-                    Console.Write("      Values: ");
+                    Console.Write(new string(' ', (level + 3) * 3) + "Values: ");
                     var values = Enum.GetNames(type);
-                    for (int i = 0; i < values.Length - 1; i++)
-                    {
-                        WriteColor(values[i], ConsoleColor.Green, newLine: false);
-                        Console.Write(", ");
-                    }
-                    WriteColor(values[values.Length - 1], ConsoleColor.Green, newLine: false);
-                    Console.WriteLine();
+                    WriteColor(string.Join(", ", values), ConsoleColor.Green);
                 }
                 else
                     Console.WriteLine(
                         new string(
                             ' ',
-                            maxNameLength - opt.Name.Length - aliasesLength + defaultPadding
+                            maxNameLength - opt.Syntax.Length - aliasesLength + defaultPadding
                         ) + opt.Description
                     );
             }
         }
+
+        private static void DrawLine(char symbol, int length) =>
+            Console.WriteLine(new string(symbol, length));
     }
 }
